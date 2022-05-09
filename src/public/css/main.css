@@ -15,7 +15,12 @@
   background-color: #222326;
   text-align: center;
   font-family: spotify-circular;
-  --footer-height: 3.5rem;
+  --std-spacing: 2.5rem;
+  --footer-height: 5rem;
+}
+
+body {
+  display: none;
 }
 
 a {
@@ -29,6 +34,7 @@ a:hover {
 .container {
   background-color: #1ae68c;
   min-height: calc(100vh - var(--footer-height));
+  padding: var(--std-spacing) 0;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -37,14 +43,19 @@ a:hover {
 
 .title {
   font-size: 3rem;
+  font-weight: 900;
 }
 
 .subtitle {
   font-size: 1.2rem;
-  margin-bottom: 2.5rem;
+  margin-bottom: var(--std-spacing);
 }
 
-.gen-btn {
+.data-card {
+  margin-bottom: var(--std-spacing);
+}
+
+.action-btn {
   background-color: white;
   color: black;
   font-weight: 700;
@@ -52,7 +63,7 @@ a:hover {
   border-radius: 500px;
 }
 
-.gen-btn:hover {
+.action-btn:hover {
   cursor: pointer;
   filter: brightness(0.95);
   transform: scale(1.05);
