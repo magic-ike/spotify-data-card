@@ -13,12 +13,15 @@ const renderPage = () => {
     'https://github-readme-stats.vercel.app/api/top-langs/?username=magic-ike&theme=dark&hide_title=true&layout=compact&langs_count=10';
 
   const dataCard = $('.data-card');
+  const dataCardText = $('.data-card-text');
 
   if (userId) {
     dataCard.attr('src', imageUrl).fadeIn();
-    setActionBtnText(userId).off('click').click(copyCardLink);
+    dataCardText.hide();
+    setActionBtnText(userId).off('click').click(copyCardCode);
   } else {
     dataCard.removeAttr('src').hide();
+    dataCardText.attr('src', imageUrl).fadeIn();
     setActionBtnText(userId).off('click').click(generateCard);
   }
 
@@ -27,13 +30,13 @@ const renderPage = () => {
 
 const setActionBtnText = (userId) => {
   const actionBtn = $('.action-btn');
-  const newText = userId ? 'Copy Link' : 'Generate Card';
+  const newText = userId ? 'Copy Code' : 'Generate Card';
   if (!actionBtn.html()) return actionBtn.html(newText);
   else return actionBtn.hide().html(newText).fadeIn();
 };
 
-const copyCardLink = () => {
-  alert('Link copied to clipboard!');
+const copyCardCode = () => {
+  alert('Code copied to clipboard!');
   // temp
   localStorage.removeItem(USER_ID);
   renderPage();

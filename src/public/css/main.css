@@ -12,11 +12,17 @@
 }
 
 :root {
-  background-color: #222326;
-  text-align: center;
-  font-family: spotify-circular;
-  --std-spacing: 2.5rem;
+  --spotify-green: #1db954;
+  --spotify-black: #191414;
+  --spotify-bg: #1ae68c;
+  --spotify-bg-dark: #222326;
+  --std-spacing: 3rem;
   --footer-height: 5rem;
+
+  background-color: var(--spotify-bg-dark);
+  color: var(--spotify-black);
+  font-family: spotify-circular, Helvetica, Arial, sans-serif;
+  text-align: center;
 }
 
 body {
@@ -28,13 +34,13 @@ a {
 }
 
 a:hover {
-  color: #1bd760;
+  color: var(--spotify-green);
 }
 
 .container {
-  background-color: #1ae68c;
+  background-color: var(--spotify-bg);
   min-height: calc(100vh - var(--footer-height));
-  padding: var(--std-spacing) 0;
+  padding: var(--std-spacing);
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -48,16 +54,22 @@ a:hover {
 
 .subtitle {
   font-size: 1.2rem;
+  font-weight: 500;
   margin-bottom: var(--std-spacing);
 }
 
-.data-card {
+.data-card-area {
+  width: 100%;
+  max-width: 400px;
   margin-bottom: var(--std-spacing);
+}
+
+.data-card-text {
+  font-size: 1.2rem;
 }
 
 .action-btn {
   background-color: white;
-  color: black;
   font-weight: 700;
   padding: 1rem 2rem;
   border-radius: 500px;
@@ -69,11 +81,34 @@ a:hover {
   transform: scale(1.05);
 }
 
-footer {
+.footer {
   color: white;
   width: 100%;
   height: var(--footer-height);
+  padding: 0 var(--std-spacing);
   display: flex;
-  justify-content: center;
+  justify-content: space-between;
   align-items: center;
+  gap: var(--std-spacing);
+}
+
+.spotify-icon {
+  display: none;
+}
+
+.code-link {
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (max-width: 768px) {
+  .spotify-logo {
+    display: none;
+  }
+
+  .spotify-icon {
+    display: block;
+  }
 }
