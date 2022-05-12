@@ -1,13 +1,9 @@
 import path from 'path';
-import dotenv from 'dotenv';
 import express from 'express';
 import { engine } from 'express-handlebars';
 import cors from 'cors';
 import pageRouter from './routes';
 import apiRouter from './routes/api';
-
-// .env files
-dotenv.config();
 
 // express app
 const app = express();
@@ -30,5 +26,6 @@ app.use(express.static(path.join(__dirname, 'public')));
 // routes
 app.use('/', pageRouter);
 app.use('/api', apiRouter);
+app.use((_req, res) => res.sendStatus(404));
 
 export default app;

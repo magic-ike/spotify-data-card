@@ -43,7 +43,8 @@ const copyCardCode = () => {
 };
 
 const generateCard = () => {
-  localStorage.setItem(USER_ID, 'asdf');
-  alert('Data card generated!');
-  renderPage();
+  window.location.href = '/auth/login';
+  // localStorage.setItem(USER_ID, 'asdf');
+  // alert('Data card generated!');
+  // renderPage();
 };
