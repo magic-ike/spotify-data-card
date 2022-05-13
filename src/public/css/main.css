@@ -15,18 +15,15 @@
   --spotify-green: #1db954;
   --spotify-black: #191414;
   --spotify-bg: #1ae68c;
-  --spotify-bg-dark: #222326;
+  /* --spotify-bg-dark: #222326; */
   --std-spacing: 3rem;
+  --btn-width: 12rem;
   --footer-height: 5rem;
 
-  background-color: var(--spotify-bg-dark);
+  background-color: var(--spotify-black);
   color: var(--spotify-black);
   font-family: spotify-circular, Helvetica, Arial, sans-serif;
   text-align: center;
-}
-
-body {
-  display: none;
 }
 
 a {
@@ -68,17 +65,24 @@ a:hover {
   font-size: 1.2rem;
 }
 
-.action-btn {
+.action-btn,
+.logout-btn {
   background-color: white;
   font-weight: 700;
+  width: var(--btn-width);
   padding: 1rem 2rem;
   border-radius: 500px;
 }
 
-.action-btn:hover {
+.action-btn:hover,
+.logout-btn:hover {
   cursor: pointer;
   filter: brightness(0.95);
   transform: scale(1.05);
+}
+
+.logout-btn {
+  margin-top: 1rem;
 }
 
 .footer {

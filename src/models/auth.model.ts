@@ -1,5 +1,5 @@
 import { stringify } from 'querystring';
-import axios, { AxiosResponse } from 'axios';
+import axios, { AxiosError, AxiosResponse } from 'axios';
 import { AccessTokenResponse } from '../interfaces/access-token-response.interface';
 
 type GrantType = 'authorization_code' | 'refresh_token';
@@ -42,7 +42,7 @@ export default class AuthModel {
     authCode?: string,
     redirectUri?: string,
     refreshToken?: string
-  ): Promise<[AccessTokenResponse | null, string]> {
+  ): Promise<[AccessTokenResponse, (Error | AxiosError)?]> {
     let response: AxiosResponse;
     let data = {};
 
@@ -76,13 +76,17 @@ export default class AuthModel {
         }
       });
     } catch (error) {
-      return [null, JSON.stringify(error)];
+      return [null, error as Error | AxiosError];
     }
 
-    if (response.status === 200) {
-      return [response.data, ''];
-    } else {
-      return [null, JSON.stringify(response)];
-    }
+    if (response.status !== 200)
+      return [
+        null,
+        new Error(
+          `Access token request failed with status code ${response.status}.`
+        )
+      ];
+
+    return [response.data];
   }
 }

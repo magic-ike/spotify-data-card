@@ -1,7 +1,7 @@
 import { stringify } from 'querystring';
 import { RequestHandler, Response } from 'express';
 import AuthModel from '../models/auth.model';
-import { AccessTokenResponse } from '../interfaces/access-token-response.interface';
+import UserModel from '../models/user.model';
 import { getBaseUrl, getFullUrl } from '../utils/url';
 import { generateRandomString } from '../utils/string';
 
@@ -15,7 +15,7 @@ export const auth_page_login: RequestHandler = (req, res) => {
   const scope = 'user-read-currently-playing user-top-read';
   const state = generateRandomString(16);
 
-  res.cookie(stateKey, state);
+  res.cookie(stateKey, state, { httpOnly: true });
   res.redirect(
     'https://accounts.spotify.com/authorize?' +
       stringify({
@@ -30,16 +30,16 @@ export const auth_page_login: RequestHandler = (req, res) => {
 
 // uses auth code to request access token and refresh token
 export const auth_page_callback: RequestHandler = async (req, res) => {
-  // TODO: handle errors on home page
-  const error = (req.query.error as string) || null;
-  if (error) {
-    redirectToHomePageWithError(res, error);
+  const errorString = (req.query.error as string) || null;
+  if (errorString) {
+    redirectToHomePageWithError(res, errorString);
     return;
   }
 
-  // TODO: actually check for state mismatch
   const state = (req.query.state as string) || null;
-  if (!state) {
+  const originalState = req.cookies[stateKey];
+  res.clearCookie(stateKey, { httpOnly: true });
+  if (!state || state !== originalState) {
     redirectToHomePageWithError(res, 'state_mismatch');
     return;
   }
@@ -51,29 +51,36 @@ export const auth_page_callback: RequestHandler = async (req, res) => {
   }
 
   const redirectUri = getFullUrl(req);
-  const [data, errorOrBadResponse] = await AuthModel.getAccessTokenWithAuthCode(
+  const [data, error1] = await AuthModel.getAccessTokenWithAuthCode(
     clientId,
     clientSecret,
     authCode,
     redirectUri
   );
-  if (errorOrBadResponse) {
-    redirectToHomePageWithError(res, errorOrBadResponse);
+  if (error1) {
+    redirectToHomePageWithError(res, error1.message);
     return;
   }
 
-  const { access_token, refresh_token } = data as AccessTokenResponse;
-  // TODO: use user model to store uid and tokens in redis
-  res.send(JSON.stringify({ access_token, refresh_token }));
+  const { access_token, refresh_token } = data;
+  const [userId, error2] = await UserModel.saveCurrentUserId(
+    access_token,
+    refresh_token as string
+  );
+  if (error2) {
+    redirectToHomePageWithError(res, error2.message);
+    return;
+  }
+
+  redirectToHomePageWithUserId(res, userId);
 };
 
 // helper functions
 
 const redirectToHomePageWithError = (res: Response, error: string) => {
-  res.redirect(
-    '/?' +
-      stringify({
-        error: error
-      })
-  );
+  res.redirect('/#' + stringify({ error }));
+};
+
+const redirectToHomePageWithUserId = (res: Response, userId: string) => {
+  res.redirect('/#' + stringify({ userId }));
 };

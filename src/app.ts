@@ -2,6 +2,7 @@ import path from 'path';
 import express from 'express';
 import { engine } from 'express-handlebars';
 import cors from 'cors';
+import cookieParser from 'cookie-parser';
 import pageRouter from './routes';
 import apiRouter from './routes/api';
 
@@ -15,6 +16,9 @@ app.set('views', path.join(__dirname, 'views'));
 
 // cors
 app.use(cors());
+
+// cookie parser
+app.use(cookieParser());
 
 // body parser
 app.use(express.json());
