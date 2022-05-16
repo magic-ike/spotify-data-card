@@ -15,6 +15,10 @@ const tokenMapSchema = new Schema(
     accessToken: {
       type: String,
       required: true
+    },
+    accessTokenExpiresAt: {
+      type: Date,
+      required: true
     }
   },
   { timestamps: true }

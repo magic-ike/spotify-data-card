@@ -11,7 +11,7 @@ const clientSecret = process.env.SPOTIFY_CLIENT_SECRET as string;
 const stateKey = 'spotify_auth_state';
 
 // requests user authorization
-export const auth_page_login: RequestHandler = (req, res) => {
+export const auth_login: RequestHandler = (req, res) => {
   const redirectUri = `${getBaseUrl(req)}/callback`;
   const scope = 'user-read-currently-playing user-top-read';
   const state = generateRandomString(16);
@@ -30,7 +30,7 @@ export const auth_page_login: RequestHandler = (req, res) => {
 };
 
 // uses auth code to request and save access and refresh tokens
-export const auth_page_callback: RequestHandler = async (req, res) => {
+export const auth_callback: RequestHandler = async (req, res) => {
   // validate query params
 
   const error = (req.query.error as string) || null;
@@ -69,7 +69,7 @@ export const auth_page_callback: RequestHandler = async (req, res) => {
   }
 
   // get user id
-  const { access_token, refresh_token } = response;
+  const { refresh_token, access_token, expires_in } = response;
   let userId;
   try {
     userId = await User.getUserId(access_token);
@@ -82,8 +82,9 @@ export const auth_page_callback: RequestHandler = async (req, res) => {
   const filter = { userId };
   const tokenMapData = {
     userId,
+    refreshToken: refresh_token,
     accessToken: access_token,
-    refreshToken: refresh_token
+    accessTokenExpiresAt: Date.now() + expires_in * 1000
   };
   try {
     await TokenMap.findOneAndUpdate(filter, tokenMapData, {

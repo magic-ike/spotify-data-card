@@ -77,7 +77,7 @@ export default class Auth {
 
       if (response.status !== 200) {
         reject(
-          `Access token request failed with status code ${response.status}.`
+          `Request to fetch access token failed with status code ${response.status}.`
         );
         return;
       }
