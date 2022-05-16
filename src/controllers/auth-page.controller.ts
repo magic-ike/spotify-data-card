@@ -1,12 +1,13 @@
 import { stringify } from 'querystring';
 import { RequestHandler, Response } from 'express';
-import AuthModel from '../models/auth.model';
-import UserModel from '../models/user.model';
+import Auth from '../models/auth.model';
+import User from '../models/user.model';
+import TokenMap from '../models/token-map.model';
 import { getBaseUrl, getFullUrl } from '../utils/url';
 import { generateRandomString } from '../utils/string';
 
-const clientId = process.env.CLIENT_ID as string;
-const clientSecret = process.env.CLIENT_SECRET as string;
+const clientId = process.env.SPOTIFY_CLIENT_ID as string;
+const clientSecret = process.env.SPOTIFY_CLIENT_SECRET as string;
 const stateKey = 'spotify_auth_state';
 
 // requests user authorization
@@ -28,11 +29,13 @@ export const auth_page_login: RequestHandler = (req, res) => {
   );
 };
 
-// uses auth code to request access token and refresh token
+// uses auth code to request and save access and refresh tokens
 export const auth_page_callback: RequestHandler = async (req, res) => {
-  const errorString = (req.query.error as string) || null;
-  if (errorString) {
-    redirectToHomePageWithError(res, errorString);
+  // validate query params
+
+  const error = (req.query.error as string) || null;
+  if (error) {
+    redirectToHomePageWithError(res, error);
     return;
   }
 
@@ -50,28 +53,49 @@ export const auth_page_callback: RequestHandler = async (req, res) => {
     return;
   }
 
+  // get access token
   const redirectUri = getFullUrl(req);
-  const [data, error1] = await AuthModel.getAccessTokenWithAuthCode(
-    clientId,
-    clientSecret,
-    authCode,
-    redirectUri
-  );
-  if (error1) {
-    redirectToHomePageWithError(res, error1.message);
+  let response;
+  try {
+    response = await Auth.getAccessTokenWithAuthCode(
+      clientId,
+      clientSecret,
+      authCode,
+      redirectUri
+    );
+  } catch (error) {
+    redirectToHomePageWithError(res, error as string);
     return;
   }
 
-  const { access_token, refresh_token } = data;
-  const [userId, error2] = await UserModel.saveCurrentUserId(
-    access_token,
-    refresh_token as string
-  );
-  if (error2) {
-    redirectToHomePageWithError(res, error2.message);
+  // get user id
+  const { access_token, refresh_token } = response;
+  let userId;
+  try {
+    userId = await User.getUserId(access_token);
+  } catch (error) {
+    redirectToHomePageWithError(res, error as string);
     return;
   }
 
+  // save user id and tokens to db
+  const filter = { userId };
+  const tokenMapData = {
+    userId,
+    accessToken: access_token,
+    refreshToken: refresh_token
+  };
+  try {
+    await TokenMap.findOneAndUpdate(filter, tokenMapData, {
+      returnOriginal: false, // in case the updated document needs to be used
+      upsert: true
+    });
+  } catch (error) {
+    redirectToHomePageWithError(res, (error as Error).message);
+    return;
+  }
+
+  // return to home page to save user id to localStorage
   redirectToHomePageWithUserId(res, userId);
 };
 

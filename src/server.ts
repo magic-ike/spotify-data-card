@@ -6,10 +6,17 @@
  * further reading: https://12factor.net/config
  */
 import 'dotenv/config';
+import mongoose from 'mongoose';
 import app from './app';
 
+const DB_URI = process.env.MONGODB_CONNECTION_STRING as string;
 const PORT = process.env.PORT || 8080;
 
-app.listen(PORT, () =>
-  console.log(`running server on http://localhost:${PORT}`)
-);
+mongoose
+  .connect(DB_URI)
+  .then(() => {
+    app.listen(PORT, () =>
+      console.log(`running server on http://localhost:${PORT}`)
+    );
+  })
+  .catch((error) => console.log(error));

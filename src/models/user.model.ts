@@ -1,35 +1,31 @@
 import axios, { AxiosError, AxiosResponse } from 'axios';
 import UserProfile from '../interfaces/user-profile.interface';
 
-export default class UserModel {
-  static async saveCurrentUserId(
-    accessToken: string,
-    refreshToken: string
-  ): Promise<[string, (Error | AxiosError)?]> {
-    let response: AxiosResponse;
+export default class User {
+  static getUserId(accessToken: string): Promise<string> {
+    return new Promise(async (resolve, reject) => {
+      let response: AxiosResponse;
 
-    try {
-      response = await axios.get('https://api.spotify.com/v1/me', {
-        headers: {
-          Authorization: `Bearer ${accessToken}`
-        }
-      });
-    } catch (error) {
-      return [null, error as AxiosError];
-    }
+      try {
+        response = await axios.get('https://api.spotify.com/v1/me', {
+          headers: {
+            Authorization: `Bearer ${accessToken}`
+          }
+        });
+      } catch (error) {
+        reject((error as AxiosError).message);
+        return;
+      }
 
-    if (response.status !== 200)
-      return [
-        null,
-        new Error(
-          `Request to save user ID failed with status code ${response.status}.`
-        )
-      ];
+      if (response.status !== 200) {
+        reject(
+          `Request to fetch user ID failed with status code ${response.status}.`
+        );
+        return;
+      }
 
-    const { id: userId } = response.data as UserProfile;
-
-    // TODO: store userId and tokens in mongo
-
-    return [userId];
+      const { id } = response.data as UserProfile;
+      resolve(id);
+    });
   }
 }
