@@ -1,32 +1,16 @@
 import { stringify } from 'querystring';
 import axios, { AxiosError, AxiosResponse } from 'axios';
-import { AccessTokenResponse } from '../interfaces/access-token-response.interface';
+import { AccessTokenResponseBody } from '../interfaces/access-token-response-body.interface';
+import { CLIENT_ID, CLIENT_SECRET } from '../utils/constants';
 
 export default class Auth {
-  static getAccessTokenWithAuthCode(
-    clientId: string,
-    clientSecret: string,
-    authCode: string,
-    redirectUri: string
-  ) {
-    return this.#getAccessToken(
-      'authorization_code',
-      clientId,
-      clientSecret,
-      authCode,
-      redirectUri
-    );
+  static getAccessTokenWithAuthCode(authCode: string, redirectUri: string) {
+    return this.#getAccessToken('authorization_code', authCode, redirectUri);
   }
 
-  static getAccessTokenWithRefreshToken(
-    clientId: string,
-    clientSecret: string,
-    refreshToken: string
-  ) {
+  static getAccessTokenWithRefreshToken(refreshToken: string) {
     return this.#getAccessToken(
       'refresh_token',
-      clientId,
-      clientSecret,
       undefined,
       undefined,
       refreshToken
@@ -35,12 +19,10 @@ export default class Auth {
 
   static #getAccessToken(
     grantType: 'authorization_code' | 'refresh_token',
-    clientId: string,
-    clientSecret: string,
     authCode?: string,
     redirectUri?: string,
     refreshToken?: string
-  ): Promise<AccessTokenResponse> {
+  ): Promise<AccessTokenResponseBody> {
     return new Promise(async (resolve, reject) => {
       let response: AxiosResponse;
       let data = {};
@@ -65,7 +47,7 @@ export default class Auth {
           data: stringify(data),
           headers: {
             Authorization: `Basic ${Buffer.from(
-              `${clientId}:${clientSecret}`
+              `${CLIENT_ID}:${CLIENT_SECRET}`
             ).toString('base64')}`,
             'Content-Type': 'application/x-www-form-urlencoded'
           }

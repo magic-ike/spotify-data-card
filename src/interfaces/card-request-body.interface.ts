@@ -1,4 +1,4 @@
-export default interface CardRequest {
+export default interface CardRequestBody {
   user_id: string;
   hide_now_playing?: string;
   hide_top_tracks?: string;
