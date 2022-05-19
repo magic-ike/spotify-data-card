@@ -57,13 +57,6 @@ export default class Auth {
         return;
       }
 
-      if (response.status !== 200) {
-        reject(
-          `Request to fetch access token failed with status code ${response.status}.`
-        );
-        return;
-      }
-
       resolve(response.data);
     });
   }

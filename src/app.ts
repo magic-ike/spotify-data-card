@@ -15,6 +15,9 @@ app.engine('handlebars', engine());
 app.set('view engine', 'handlebars');
 app.set('views', path.join(__dirname, 'views'));
 
+// json response formatting
+app.set('json spaces', 2);
+
 // cors
 app.use(cors());
 

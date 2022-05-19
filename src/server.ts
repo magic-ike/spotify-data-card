@@ -9,7 +9,7 @@ import 'dotenv/config';
 import mongoose from 'mongoose';
 import app from './app';
 
-const DB_URI = process.env.MONGODB_CONNECTION_STRING as string;
+const DB_URI = process.env.MONGODB_CONNECTION_STRING!;
 const PORT = process.env.PORT || 8080;
 
 mongoose

@@ -1,7 +1,7 @@
 import { Request } from 'express';
 
 export const getUrl = (req: Request) => {
-  return `${req.protocol}://${req.get('host')}`; // protocol + host
+  return `${req.protocol}://${req.header('host')}`; // protocol + host
 };
 
 export const getBaseUrl = (req: Request) => {

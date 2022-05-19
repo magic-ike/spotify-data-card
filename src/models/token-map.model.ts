@@ -112,7 +112,7 @@ export default class TokenMap extends MongoTokenMap {
         return;
       }
       if (!tokenMap) {
-        reject(`Token map with user ID '${userId}' never existed.`);
+        reject(`Token map with user ID '${userId}' didn't exist.`);
         return;
       }
       resolve(tokenMap);

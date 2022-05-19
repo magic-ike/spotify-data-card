@@ -1,4 +1,5 @@
 const USER_ID = 'userId';
+const REFRESH_TOKEN = 'refreshToken';
 const DEFAULT_DELAY_TIME = 400;
 
 $(() => {
@@ -12,23 +13,25 @@ $(() => {
 
 const renderPage = () => {
   const userId = localStorage.getItem(USER_ID);
+  const refreshToken = localStorage.getItem(REFRESH_TOKEN);
+  const loggedIn = userId && refreshToken;
   // temp
   const imageUrl =
-    'https://github-readme-stats.vercel.app/api/top-langs/?username=magic-ike&theme=dark&hide_title=true&layout=compact&langs_count=10';
+    'https://github-readme-stats.vercel.app/api/top-langs/?username=magic-ike&theme=dark&border_radius=10&hide_title=true&layout=compact&langs_count=10';
 
   const dataCard = $('.data-card');
   const dataCardText = $('.data-card-text');
   const logoutBtn = $('.logout-btn');
 
-  if (userId) {
+  if (loggedIn) {
     dataCard.attr('src', imageUrl).fadeIn();
     dataCardText.hide();
-    setActionBtnText(userId).off('click').click(copyCardCode);
+    setActionBtnText(loggedIn).off('click').click(copyCardCode);
     logoutBtn.fadeIn();
   } else {
     dataCard.removeAttr('src').hide();
     dataCardText.attr('src', imageUrl).fadeIn();
-    setActionBtnText(userId).off('click').click(generateCard);
+    setActionBtnText(loggedIn).off('click').click(generateCard);
     logoutBtn.hide();
   }
 
@@ -36,10 +39,11 @@ const renderPage = () => {
   if (body.is(':hidden')) body.show();
 };
 
-const setActionBtnText = (userId) => {
+const setActionBtnText = (loggedIn) => {
   const actionBtn = $('.action-btn');
-  const newText = userId ? 'Copy Code' : 'Generate Card';
-  if (!actionBtn.html()) return actionBtn.html(newText);
+  const oldText = actionBtn.html();
+  const newText = loggedIn ? 'Copy Code' : 'Generate Card';
+  if (!oldText || oldText === newText) return actionBtn.html(newText);
   else return actionBtn.hide().html(newText).fadeIn();
 };
 
@@ -49,7 +53,7 @@ const copyCardCode = () => {
 };
 
 const logOut = () => {
-  localStorage.removeItem(USER_ID);
+  localStorage.clear();
   renderPage();
 };
 
@@ -60,13 +64,14 @@ const generateCard = () => {
 // hash param functions
 
 const checkForHashParams = () => {
-  const { error, userId } = getHashParams();
+  const { error, user_id, refresh_token } = getHashParams();
   if (error) {
     alert(`Failed to generate data card. Error: ${error}`);
-  } else if (userId) {
-    localStorage.setItem(USER_ID, userId);
+  } else if (user_id && refresh_token) {
+    localStorage.setItem(USER_ID, user_id);
+    localStorage.setItem(REFRESH_TOKEN, refresh_token);
     alert('Data card generated!');
-  } else return;
+  }
   history.replaceState('', document.title, window.location.pathname);
   renderPage();
 };

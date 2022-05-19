@@ -32,13 +32,13 @@ export const auth_login: RequestHandler = (req, res) => {
 export const auth_callback: RequestHandler = async (req, res) => {
   // validate query params
 
-  const error = (req.query.error as string) || null;
+  const error = req.query.error;
   if (error) {
-    redirectToHomePageWithError(res, error);
+    redirectToHomePageWithError(res, error as string);
     return;
   }
 
-  const state = (req.query.state as string) || null;
+  const state = req.query.state;
   const originalState = req.cookies[STATE_KEY];
   res.clearCookie(STATE_KEY, { httpOnly: true });
   if (!state || state !== originalState) {
@@ -46,7 +46,7 @@ export const auth_callback: RequestHandler = async (req, res) => {
     return;
   }
 
-  const authCode = (req.query.code as string) || null;
+  const authCode = req.query.code;
   if (!authCode) {
     redirectToHomePageWithError(res, 'missing_auth_code');
     return;
@@ -56,7 +56,10 @@ export const auth_callback: RequestHandler = async (req, res) => {
   const redirectUri = getFullUrl(req);
   let response;
   try {
-    response = await Auth.getAccessTokenWithAuthCode(authCode, redirectUri);
+    response = await Auth.getAccessTokenWithAuthCode(
+      authCode as string,
+      redirectUri
+    );
   } catch (error) {
     redirectToHomePageWithError(res, error as string);
     return;
@@ -64,6 +67,7 @@ export const auth_callback: RequestHandler = async (req, res) => {
 
   // fetch user id
   const { refresh_token, access_token, expires_in } = response;
+  const refreshToken = refresh_token!;
   let userId;
   try {
     userId = await User.getUserId(access_token);
@@ -74,19 +78,14 @@ export const auth_callback: RequestHandler = async (req, res) => {
 
   // save user id and tokens to db
   try {
-    await TokenMap.saveTokenMap(
-      userId,
-      refresh_token as string,
-      access_token,
-      expires_in
-    );
+    await TokenMap.saveTokenMap(userId, refreshToken, access_token, expires_in);
   } catch (error) {
     redirectToHomePageWithError(res, error as string);
     return;
   }
 
-  // return to home page to save user id to localStorage
-  redirectToHomePageWithUserId(res, userId);
+  // return to home page to save credentials to localStorage
+  redirectToHomePageWithCreds(res, userId, refreshToken);
 };
 
 // helper functions
@@ -95,6 +94,12 @@ const redirectToHomePageWithError = (res: Response, error: string) => {
   res.redirect('/#' + stringify({ error }));
 };
 
-const redirectToHomePageWithUserId = (res: Response, userId: string) => {
-  res.redirect('/#' + stringify({ userId }));
+const redirectToHomePageWithCreds = (
+  res: Response,
+  userId: string,
+  refreshToken: string
+) => {
+  res.redirect(
+    '/#' + stringify({ user_id: userId, refresh_token: refreshToken })
+  );
 };

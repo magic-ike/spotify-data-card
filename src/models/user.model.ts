@@ -17,13 +17,6 @@ export default class User {
         return;
       }
 
-      if (response.status !== 200) {
-        reject(
-          `Request to fetch user ID failed with status code ${response.status}.`
-        );
-        return;
-      }
-
       const { id } = response.data as UserProfile;
       resolve(id);
     });
