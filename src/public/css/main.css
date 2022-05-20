@@ -61,12 +61,12 @@ a:hover {
   margin-bottom: var(--std-spacing);
 }
 
-.data-card {
-  max-width: 100%;
-}
-
 .data-card-text {
   font-size: 1.2rem;
+}
+
+.data-card {
+  max-width: 100%;
 }
 
 .btn {
@@ -84,8 +84,14 @@ a:hover {
   transform: scale(1.05);
 }
 
-.logout-btn {
+.logout-btn,
+.delete-btn {
   margin-top: 1rem;
+}
+
+.delete-btn {
+  /* TODO: pick better red */
+  color: red;
 }
 
 .footer {
