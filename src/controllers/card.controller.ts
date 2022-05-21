@@ -1,9 +1,16 @@
 import { RequestHandler, Response } from 'express';
 import TokenMap from '../models/token-map.model';
-import Auth from '../models/auth.model';
+import User from '../models/user.model';
 import CardGetRequestQueryParams from '../interfaces/card-get-request-query-params.interface';
 import CardDeleteRequestQueryParams from '../interfaces/card-delete-request-query-params.interface';
-import { SHORT_URL } from '../utils/constants';
+import Track from '../interfaces/track.interface';
+import Artist from '../interfaces/artist.interface';
+import { SHORT_URL } from '../utils/config';
+import { boolFromString, boundedIntFromString } from '../utils/string';
+
+const DEFAULT_TOP_ITEM_COUNT = 3;
+const MIN_TOP_ITEM_COUNT = 1;
+const MAX_TOP_ITEM_COUNT = 3;
 
 // serves a data card
 export const card_get: RequestHandler = async (req, res) => {
@@ -15,47 +22,102 @@ export const card_get: RequestHandler = async (req, res) => {
     return;
   }
 
-  // fetch token map associated with user id
-  let tokenMap;
+  // fetch access token
+  let accessToken;
   try {
-    tokenMap = await TokenMap.getTokenMap(userId);
+    accessToken = await TokenMap.getLatestAccessToken(userId);
   } catch (error) {
     serveErrorCard(res, getGenericErrorMessage(userId));
     return;
   }
 
-  // get tokens from token map and update access token if it's expired
-  let { accessToken } = tokenMap;
-  const { refreshToken, accessTokenExpiresAt } = tokenMap;
-  if (accessTokenExpiresAt <= Date.now()) {
-    // use refresh token to request new access token
-    let response;
+  // fetch user display name
+  let userDisplayName;
+  try {
+    const { display_name } = await User.getUserProfile(accessToken);
+    userDisplayName = display_name;
+  } catch (error) {
+    serveErrorCard(res, getGenericErrorMessage(userId));
+    return;
+  }
+
+  // get options from query params
+  const {
+    custom_title: customTitle,
+    hide_title,
+    hide_now_playing,
+    hide_top_tracks,
+    hide_top_artists,
+    show_explicit_tracks,
+    top_track_limit,
+    top_artist_limit
+  } = cardReqBody;
+  const hideTitle = boolFromString(hide_title);
+  const hideExplicitTracks = !boolFromString(show_explicit_tracks);
+  const showNowPlaying = !boolFromString(hide_now_playing);
+  const showTopTracks = !boolFromString(hide_top_tracks);
+  const showTopArtists = !boolFromString(hide_top_artists);
+  const topTrackLimit = boundedIntFromString(
+    MIN_TOP_ITEM_COUNT,
+    MAX_TOP_ITEM_COUNT,
+    DEFAULT_TOP_ITEM_COUNT,
+    top_track_limit
+  );
+  const topArtistLimit = boundedIntFromString(
+    MIN_TOP_ITEM_COUNT,
+    MAX_TOP_ITEM_COUNT,
+    DEFAULT_TOP_ITEM_COUNT,
+    top_artist_limit
+  );
+
+  // serve error card if no data is visible
+  if (!showNowPlaying && !showTopTracks && !showTopArtists) {
+    serveErrorCard(
+      res,
+      `${userDisplayName} doesn't want to show any of their Spotify data. 🤷🏾‍♂️`
+    );
+    return;
+  }
+
+  // get currently playing track
+  let nowPlaying = null;
+  if (showNowPlaying) {
     try {
-      response = await Auth.getAccessTokenWithRefreshToken(refreshToken);
+      nowPlaying = await User.getNowPlaying(accessToken, hideExplicitTracks);
     } catch (error) {
-      serveErrorCard(res, getGenericErrorMessage(userId));
+      serveErrorCard(res, getGenericErrorMessage(userId, userDisplayName));
       return;
     }
+  }
 
-    // save new access token to db
-    const { access_token, expires_in } = response;
+  // get top tracks
+  let topTracks: Track[] = [];
+  if (showTopTracks) {
     try {
-      await TokenMap.updateAccessTokenInTokenMap(
-        userId,
-        access_token,
-        expires_in
+      topTracks = await User.getTopTracks(
+        accessToken,
+        hideExplicitTracks,
+        topTrackLimit
       );
     } catch (error) {
-      serveErrorCard(res, getGenericErrorMessage(userId));
+      serveErrorCard(res, getGenericErrorMessage(userId, userDisplayName));
       return;
     }
+  }
 
-    // use new access token
-    accessToken = access_token;
+  // get top artists
+  let topArtists: Artist[] = [];
+  if (showTopArtists) {
+    try {
+      topArtists = await User.getTopArtists(accessToken, topArtistLimit);
+    } catch (error) {
+      serveErrorCard(res, getGenericErrorMessage(userId, userDisplayName));
+      return;
+    }
   }
 
   // serve data card
-  serveCard(res, cardReqBody, accessToken);
+  serveCard(res, nowPlaying, topTracks, topArtists, hideTitle, customTitle);
 };
 
 // deletes a data card
@@ -120,23 +182,21 @@ export const card_delete: RequestHandler = async (req, res) => {
 // helper functions
 
 // TODO: finish implementation
-const serveCard = (
+const serveCard = async (
   res: Response,
-  cardReqBody: CardGetRequestQueryParams,
-  accesToken: string
+  nowPlaying: Track | null,
+  topTracks: Track[],
+  topArtists: Artist[],
+  hideTitle: boolean,
+  customTitle?: string
 ) => {
-  const {
-    user_id: userId,
-    custom_title: customTitle,
-    hide_title: hideTitle,
-    hide_now_playing: hideNowPlaying,
-    hide_top_tracks: hideTopTracks,
-    hide_top_artists: hideTopArtists,
-    show_explicit_tracks: showExplicitTracks,
-    track_count: trackCount,
-    artist_count: artistCount
-  } = cardReqBody;
-  res.send(`access token: ${accesToken}`);
+  // TODO: use other options
+  // TODO: add cache-control header? (good responses only)
+  res.send({
+    'Currently Playing': nowPlaying ?? 'Nothing',
+    'Top Tracks': topTracks,
+    'Top Artists': topArtists
+  });
 };
 
 // TODO: finish implementation
@@ -144,6 +204,9 @@ const serveErrorCard = (res: Response, errorMessage: string) => {
   res.send(errorMessage);
 };
 
-const getGenericErrorMessage = (userId: string) => {
-  return `Something went wrong!<br />The user with ID '${userId}' may need to re-generate a card at ${SHORT_URL}.`;
+const getGenericErrorMessage = (userId: string, userDisplayName?: string) => {
+  return `Something went wrong!<br />
+    ${
+      userDisplayName || `The user with ID ${userId}`
+    } may need to re-generate a card at ${SHORT_URL}.`;
 };

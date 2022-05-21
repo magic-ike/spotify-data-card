@@ -1,4 +1,4 @@
-export interface AccessTokenResponseBody {
+export default interface AccessTokenResponseBody {
   access_token: string;
   token_type: string;
   scope: string;

@@ -7,3 +7,24 @@ export const generateRandomString = (length: number) => {
   }
   return result;
 };
+
+export const boolFromString = (str?: string) => {
+  const lowerCaseString = str?.toLowerCase();
+  return lowerCaseString === 'true' || lowerCaseString === '1';
+};
+
+export const boundedIntFromString = (
+  min: number,
+  max: number,
+  defaultVal: number,
+  str?: string
+) => {
+  return Math.min(max, Math.max(min, intFromString(defaultVal, str)));
+};
+
+export const intFromString = (defaultVal: number, str?: string) => {
+  if (!str) return defaultVal;
+  const num = parseInt(str, 10);
+  if (isNaN(num)) return defaultVal;
+  return num;
+};

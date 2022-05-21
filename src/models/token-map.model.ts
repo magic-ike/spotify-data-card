@@ -1,4 +1,5 @@
 import { model, Schema } from 'mongoose';
+import Auth from './auth.model';
 import ITokenMap from '../interfaces/token-map.interface';
 
 const tokenMapSchema = new Schema<ITokenMap>(
@@ -27,6 +28,9 @@ const tokenMapSchema = new Schema<ITokenMap>(
 const MongoTokenMap = model<ITokenMap>('Token Map', tokenMapSchema);
 
 export default class TokenMap extends MongoTokenMap {
+  // extra methods (defined later)
+  static getLatestAccessToken: (userId: string) => Promise<string>;
+
   static saveTokenMap(
     userId: string,
     refreshToken: string,
@@ -119,3 +123,51 @@ export default class TokenMap extends MongoTokenMap {
     });
   }
 }
+
+// extra method definitions
+
+TokenMap.getLatestAccessToken = function (userId: string): Promise<string> {
+  return new Promise(async (resolve, reject) => {
+    // fetch token map associated with user id
+    let tokenMap;
+    try {
+      tokenMap = await this.getTokenMap(userId);
+    } catch (error) {
+      reject(error);
+      return;
+    }
+
+    // get tokens from token map and update access token if it's expired
+    let { accessToken } = tokenMap;
+    const { refreshToken, accessTokenExpiresAt } = tokenMap;
+    if (accessTokenExpiresAt <= Date.now()) {
+      // use refresh token to request new access token
+      let response;
+      try {
+        response = await Auth.getAccessTokenWithRefreshToken(refreshToken);
+      } catch (error) {
+        reject(error);
+        return;
+      }
+
+      // save new access token to db
+      const { access_token, expires_in } = response;
+      try {
+        await this.updateAccessTokenInTokenMap(
+          userId,
+          access_token,
+          expires_in
+        );
+      } catch (error) {
+        reject(error);
+        return;
+      }
+
+      // use new access token
+      accessToken = access_token;
+    }
+
+    // resolve with access token
+    resolve(accessToken);
+  });
+};

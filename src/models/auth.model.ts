@@ -1,7 +1,7 @@
 import { stringify } from 'querystring';
-import axios, { AxiosError, AxiosResponse } from 'axios';
-import { AccessTokenResponseBody } from '../interfaces/access-token-response-body.interface';
-import { CLIENT_ID, CLIENT_SECRET } from '../utils/constants';
+import axios, { AxiosError } from 'axios';
+import AccessTokenResponseBody from '../interfaces/access-token-response-body.interface';
+import { CLIENT_ID, CLIENT_SECRET } from '../utils/config';
 
 export default class Auth {
   static getAccessTokenWithAuthCode(authCode: string, redirectUri: string) {
@@ -24,9 +24,8 @@ export default class Auth {
     refreshToken?: string
   ): Promise<AccessTokenResponseBody> {
     return new Promise(async (resolve, reject) => {
-      let response: AxiosResponse;
+      // choose payload based on grant type
       let data = {};
-
       if (grantType === 'authorization_code') {
         data = {
           grant_type: grantType,
@@ -40,23 +39,27 @@ export default class Auth {
         };
       }
 
+      // fetch access token
+      let response;
       try {
-        response = await axios({
-          method: 'POST',
-          url: 'https://accounts.spotify.com/api/token',
-          data: stringify(data),
-          headers: {
-            Authorization: `Basic ${Buffer.from(
-              `${CLIENT_ID}:${CLIENT_SECRET}`
-            ).toString('base64')}`,
-            'Content-Type': 'application/x-www-form-urlencoded'
+        response = await axios.post<AccessTokenResponseBody>(
+          'https://accounts.spotify.com/api/token',
+          stringify(data),
+          {
+            headers: {
+              Authorization: `Basic ${Buffer.from(
+                `${CLIENT_ID}:${CLIENT_SECRET}`
+              ).toString('base64')}`,
+              'Content-Type': 'application/x-www-form-urlencoded'
+            }
           }
-        });
+        );
       } catch (error) {
         reject((error as AxiosError).message);
         return;
       }
 
+      // resolve with access token
       resolve(response.data);
     });
   }

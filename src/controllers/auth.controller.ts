@@ -3,7 +3,7 @@ import { RequestHandler, Response } from 'express';
 import Auth from '../models/auth.model';
 import User from '../models/user.model';
 import TokenMap from '../models/token-map.model';
-import { CLIENT_ID } from '../utils/constants';
+import { CLIENT_ID } from '../utils/config';
 import { getBaseUrl, getFullUrl } from '../utils/url';
 import { generateRandomString } from '../utils/string';
 
@@ -70,7 +70,8 @@ export const auth_callback: RequestHandler = async (req, res) => {
   const refreshToken = refresh_token!;
   let userId;
   try {
-    userId = await User.getUserId(access_token);
+    const { id } = await User.getUserProfile(access_token);
+    userId = id;
   } catch (error) {
     redirectToHomePageWithError(res, error as string);
     return;
