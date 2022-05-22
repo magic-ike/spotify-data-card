@@ -3,14 +3,17 @@ import axios, { AxiosError } from 'axios';
 import AccessTokenResponseBody from '../interfaces/access-token-response-body.interface';
 import { CLIENT_ID, CLIENT_SECRET } from '../utils/config';
 
+const AUTH_CODE = 'authorization_code';
+const REFRESH_TOKEN = 'refresh_token';
+
 export default class Auth {
   static getAccessTokenWithAuthCode(authCode: string, redirectUri: string) {
-    return this.#getAccessToken('authorization_code', authCode, redirectUri);
+    return this.#getAccessToken(AUTH_CODE, authCode, redirectUri);
   }
 
   static getAccessTokenWithRefreshToken(refreshToken: string) {
     return this.#getAccessToken(
-      'refresh_token',
+      REFRESH_TOKEN,
       undefined,
       undefined,
       refreshToken
@@ -18,7 +21,7 @@ export default class Auth {
   }
 
   static #getAccessToken(
-    grantType: 'authorization_code' | 'refresh_token',
+    grantType: typeof AUTH_CODE | typeof REFRESH_TOKEN,
     authCode?: string,
     redirectUri?: string,
     refreshToken?: string
@@ -26,7 +29,7 @@ export default class Auth {
     return new Promise(async (resolve, reject) => {
       // choose payload based on grant type
       let data = {};
-      if (grantType === 'authorization_code') {
+      if (grantType === AUTH_CODE) {
         data = {
           grant_type: grantType,
           code: authCode,

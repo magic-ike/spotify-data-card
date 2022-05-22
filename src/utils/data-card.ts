@@ -1,10 +1,24 @@
-import Track from '../interfaces/track.interface';
+import Track, { isTrack } from '../interfaces/track.interface';
+import Artist from '../interfaces/artist.interface';
 import { randomIntFromInterval } from './number';
 
-export const generateSVG = (track: Track) => {
+type ItemHandlerArgs = [item: Track | Artist /*| null*/, rank?: number];
+
+export const generateCard = (
+  nowPlaying: Track | null,
+  topTracks: Track[],
+  topArtists: Artist[],
+  hideTitle: boolean,
+  customTitle?: string
+) => {};
+
+export const generateCardCell = (
+  userDisplayName: string,
+  ...[item, rank]: ItemHandlerArgs
+) => {
   return `
-<svg width="320" height="84" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-labelledby="cardTitle" role="img">
-  <title id="cardTitle">Now playing on Spotify</title>
+<svg width="320" height="84" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-labelledby="card-title" role="img">
+  <title id="card-title">${userDisplayName}'s Spotify Data</title>
   <foreignObject width="320" height="84">
     <style>
       div {
@@ -63,7 +77,7 @@ export const generateSVG = (track: Track) => {
         color: #212122;
         font-size: 14px;
 
-        margin-bottom: 18px;
+        ${isNowPlaying(item, rank) ? `margin-bottom: 18px;` : ''}
       }
 
       @media (prefers-color-scheme: light) {
@@ -144,21 +158,33 @@ export const generateSVG = (track: Track) => {
     <div xmlns="http://www.w3.org/1999/xhtml" class="container">
       <a href="{}" target="_BLANK" class="cover-link">
         <img src="${
-          track.albumImageUrl
+          isTrack(item) ? item.albumImageUrl : item.imageUrl
         }" width="64" height="64" class="cover" />
       </a>
       <div class="text-container">
-        <div class="artist">${track.artist}</div>
-        <div class="song-container">
-          <div class="song scrolling">${track.title} • ${track.albumTitle}</div>
-          <div class="song scrolling" aria-hidden="true">${track.title} • ${
-    track.albumTitle
-  }</div>
-          <div class="song scrolling" aria-hidden="true">${track.title} • ${
-    track.albumTitle
-  }</div>
-        </div>
-        <div id='bars'>${generateBarContent()}</div>
+        <div class="artist">${isTrack(item) ? item.artist : item.name}</div>
+        ${
+          isTrack(item)
+            ? `
+              <div class="song-container">
+                <div class="song scrolling">${item.title} • ${
+                item.albumTitle
+              }</div>
+                <div class="song scrolling" aria-hidden="true">${
+                  item.title
+                } • ${item.albumTitle}</div>
+                <div class="song scrolling" aria-hidden="true">${
+                  item.title
+                } • ${item.albumTitle}</div>
+              </div>
+              ${
+                isNowPlaying(item, rank)
+                  ? `<div id='bars'>${generateBarContent()}</div>`
+                  : ''
+              }
+            `
+            : ''
+        }
       </div>
     </div>
   </foreignObject>
@@ -167,6 +193,14 @@ export const generateSVG = (track: Track) => {
 };
 
 // helper functions
+
+const isNowPlaying = (...[item, rank]: ItemHandlerArgs) => {
+  return isTrack(item) && typeof rank === 'undefined';
+};
+
+const isTopItem = (...[_item, rank]: ItemHandlerArgs) => {
+  return typeof rank === 'number';
+};
 
 const generateBarContent = (barNum = 75) => {
   let barContent = '';

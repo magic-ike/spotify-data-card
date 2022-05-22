@@ -7,7 +7,7 @@ import Track from '../interfaces/track.interface';
 import Artist from '../interfaces/artist.interface';
 import { SHORT_URL } from '../utils/config';
 import { boolFromString, boundedIntFromString } from '../utils/string';
-import { generateSVG } from '../utils/data-card';
+import { generateCardCell } from '../utils/data-card';
 
 const DEFAULT_TOP_ITEM_COUNT = 3;
 const MIN_TOP_ITEM_COUNT = 1;
@@ -118,7 +118,15 @@ export const card_get: RequestHandler = async (req, res) => {
   }
 
   // serve data card
-  serveCard(res, nowPlaying, topTracks, topArtists, hideTitle, customTitle);
+  serveCard(
+    res,
+    userDisplayName,
+    nowPlaying,
+    topTracks,
+    topArtists,
+    hideTitle,
+    customTitle
+  );
 };
 
 // deletes a data card
@@ -184,6 +192,7 @@ export const card_delete: RequestHandler = async (req, res) => {
 
 const serveCard = async (
   res: Response,
+  userDisplayName: string,
   nowPlaying: Track | null,
   topTracks: Track[],
   topArtists: Artist[],
@@ -195,7 +204,7 @@ const serveCard = async (
 
   // TODO: finish
   res.setHeader('Content-Type', 'image/svg+xml');
-  res.send(generateSVG(topTracks[0]));
+  res.send(generateCardCell(userDisplayName, topTracks[0], 1));
 
   // res.send({
   //   'Currently Playing': nowPlaying ?? 'Nothing',
