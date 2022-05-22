@@ -7,6 +7,7 @@ import Track from '../interfaces/track.interface';
 import Artist from '../interfaces/artist.interface';
 import { SHORT_URL } from '../utils/config';
 import { boolFromString, boundedIntFromString } from '../utils/string';
+import { generateSVG } from '../utils/data-card';
 
 const DEFAULT_TOP_ITEM_COUNT = 3;
 const MIN_TOP_ITEM_COUNT = 1;
@@ -181,7 +182,6 @@ export const card_delete: RequestHandler = async (req, res) => {
 
 // helper functions
 
-// TODO: finish implementation
 const serveCard = async (
   res: Response,
   nowPlaying: Track | null,
@@ -192,15 +192,20 @@ const serveCard = async (
 ) => {
   // TODO: use other options
   // TODO: add cache-control header? (good responses only)
-  res.send({
-    'Currently Playing': nowPlaying ?? 'Nothing',
-    'Top Tracks': topTracks,
-    'Top Artists': topArtists
-  });
+
+  // TODO: finish
+  res.setHeader('Content-Type', 'image/svg+xml');
+  res.send(generateSVG(topTracks[0]));
+
+  // res.send({
+  //   'Currently Playing': nowPlaying ?? 'Nothing',
+  //   'Top Tracks': topTracks,
+  //   'Top Artists': topArtists
+  // });
 };
 
-// TODO: finish implementation
 const serveErrorCard = (res: Response, errorMessage: string) => {
+  // TODO: finish
   res.send(errorMessage);
 };
 
