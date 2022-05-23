@@ -1,6 +1,7 @@
 import path from 'path';
 import express from 'express';
 import { engine } from 'express-handlebars';
+import { setupReactViews } from 'express-tsx-views';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import pageRouter from './routes/index.route';
@@ -10,10 +11,15 @@ import cardRouter from './routes/card/index.route';
 // express app
 const app = express();
 
-// view engine (handlebars)
+// view engine: handlebars
 app.engine('handlebars', engine());
 app.set('view engine', 'handlebars');
 app.set('views', path.join(__dirname, 'views'));
+
+// view engine: tsx
+setupReactViews(app, {
+  viewsDirectory: path.join(__dirname, 'views')
+});
 
 // json response formatting
 app.set('json spaces', 2);

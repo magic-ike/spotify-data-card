@@ -25,7 +25,7 @@ const renderPage = () => {
   const deleteBtn = $('.delete-btn');
 
   if (!loggedIn) {
-    dataCardText.attr('src', imageUrl).fadeIn();
+    dataCardText.fadeIn();
     dataCard.removeAttr('src').hide();
     setGenCopyBtnText(loggedIn).off('click').click(generateCard);
     logoutBtn.hide();

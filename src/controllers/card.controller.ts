@@ -5,9 +5,9 @@ import CardGetRequestQueryParams from '../interfaces/card-get-request-query-para
 import CardDeleteRequestQueryParams from '../interfaces/card-delete-request-query-params.interface';
 import Track from '../interfaces/track.interface';
 import Artist from '../interfaces/artist.interface';
+import DataCardProps from '../interfaces/data-card-props.interface';
 import { SHORT_URL } from '../utils/config';
 import { boolFromString, boundedIntFromString } from '../utils/string';
-import { generateCardCell } from '../utils/data-card';
 
 const DEFAULT_TOP_ITEM_COUNT = 3;
 const MIN_TOP_ITEM_COUNT = 1;
@@ -15,6 +15,9 @@ const MAX_TOP_ITEM_COUNT = 3;
 
 // serves a data card
 export const card_get: RequestHandler = async (req, res) => {
+  // set content-type header to svg
+  res.setHeader('Content-Type', 'image/svg+xml');
+
   // validate user id query param
   const cardReqBody = req.query as unknown as CardGetRequestQueryParams;
   const { user_id: userId } = cardReqBody;
@@ -203,8 +206,17 @@ const serveCard = async (
   // TODO: add cache-control header? (good responses only)
 
   // TODO: finish
-  res.setHeader('Content-Type', 'image/svg+xml');
-  res.send(generateCardCell(userDisplayName, topTracks[0], 1));
+
+  const dataCardProps: DataCardProps = {
+    userDisplayName,
+    nowPlaying,
+    topTracks,
+    topArtists,
+    hideTitle,
+    customTitle
+  };
+
+  res.render('card', dataCardProps);
 
   // res.send({
   //   'Currently Playing': nowPlaying ?? 'Nothing',
@@ -214,8 +226,7 @@ const serveCard = async (
 };
 
 const serveErrorCard = (res: Response, errorMessage: string) => {
-  // TODO: finish
-  res.send(errorMessage);
+  res.render('card', { errorMessage });
 };
 
 const getGenericErrorMessage = (userId: string, userDisplayName?: string) => {
