@@ -3,11 +3,14 @@ import TokenMap from '../models/token-map.model';
 import User from '../models/user.model';
 import CardGetRequestQueryParams from '../interfaces/card-get-request-query-params.interface';
 import CardDeleteRequestQueryParams from '../interfaces/card-delete-request-query-params.interface';
+import { isTrack, Item } from '../interfaces/item.interface';
 import Track from '../interfaces/track.interface';
 import Artist from '../interfaces/artist.interface';
 import DataCardProps from '../interfaces/data-card-props.interface';
+import StringMap from '../interfaces/map.interface';
 import { SHORT_URL } from '../utils/config';
 import { boolFromString, boundedIntFromString } from '../utils/string';
+import { getBase64DataFromImageUrl } from '../utils/image';
 
 const DEFAULT_TOP_ITEM_COUNT = 3;
 const MIN_TOP_ITEM_COUNT = 1;
@@ -202,20 +205,22 @@ const serveCard = async (
   hideTitle: boolean,
   customTitle?: string
 ) => {
-  // TODO: use other options
   // TODO: add cache-control header? (good responses only)
 
-  // TODO: finish
-
+  const imageDataMap = await getImageDataMap([
+    nowPlaying,
+    ...topTracks,
+    ...topArtists
+  ]);
   const dataCardProps: DataCardProps = {
     userDisplayName,
     nowPlaying,
     topTracks,
     topArtists,
+    imageDataMap,
     hideTitle,
     customTitle
   };
-
   res.render('card', dataCardProps);
 
   // res.send({
@@ -223,6 +228,19 @@ const serveCard = async (
   //   'Top Tracks': topTracks,
   //   'Top Artists': topArtists
   // });
+};
+
+const getImageDataMap = async (items: Item[]) => {
+  const map: StringMap = {};
+  for (const item of items) {
+    if (!item) continue;
+    if (isTrack(item)) {
+      map[item.albumImageUrl] = await getBase64DataFromImageUrl(
+        item.albumImageUrl
+      );
+    } else map[item.imageUrl] = await getBase64DataFromImageUrl(item.imageUrl);
+  }
+  return map;
 };
 
 const serveErrorCard = (res: Response, errorMessage: string) => {

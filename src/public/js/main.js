@@ -16,8 +16,7 @@ const renderPage = () => {
   const refreshToken = localStorage.getItem(REFRESH_TOKEN);
   const loggedIn = userId && refreshToken;
   // temp
-  const imageUrl =
-    'https://github-readme-stats.vercel.app/api/top-langs/?username=magic-ike&theme=dark&border_radius=10&hide_title=true&layout=compact&langs_count=10';
+  const imageUrl = 'http://localhost:8080/card?user_id=12146253656';
 
   const dataCardText = $('.data-card-text');
   const dataCard = $('.data-card');

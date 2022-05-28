@@ -1,21 +1,8 @@
-// import React, { Component } from "react";
-
-// export interface Props {
-//   title: string;
-//   lang: string;
-// }
-
-// // Important -- use the `default` export
-// export default class MyView extends Component<Props> {
-//   render() {
-//     return <div>Hello from React! Title: {this.props.title}</div>;
-//   }
-// }
-
 import React from 'react';
 import DataCardProps from '../../interfaces/data-card-props.interface';
-import Track, { isTrack } from '../../interfaces/track.interface';
-import Artist from '../../interfaces/artist.interface';
+import { Item, isTrack } from '../../interfaces/item.interface';
+import StringMap from '../../interfaces/map.interface';
+import { getBase64DataFromImagePath } from '../../utils/image';
 import { randomIntFromInterval } from '../../utils/number';
 
 const CELL_WIDTH = 500;
@@ -30,29 +17,38 @@ export default function DataCard({
   nowPlaying,
   topTracks,
   topArtists,
+  imageDataMap,
   hideTitle,
   customTitle,
   errorMessage
 }: DataCardProps) {
   if (errorMessage) return <div>{errorMessage}</div>;
 
+  // TODO: use other options
+
   return (
     <DataCardCell
       userDisplayName={userDisplayName}
-      item={topTracks[0]}
+      item={topTracks[1]}
+      imageDataMap={imageDataMap}
       // rank={1}
     />
   );
 }
 
-type Item = Track | Artist /*| null*/;
 interface DataCardCellProps {
   userDisplayName: string;
   item: Item;
+  imageDataMap: StringMap;
   rank?: number;
 }
 
-const DataCardCell = ({ userDisplayName, item, rank }: DataCardCellProps) => {
+const DataCardCell = ({
+  userDisplayName,
+  item,
+  imageDataMap,
+  rank
+}: DataCardCellProps) => {
   return (
     <svg
       width={CELL_WIDTH}
@@ -71,40 +67,60 @@ const DataCardCell = ({ userDisplayName, item, rank }: DataCardCellProps) => {
         >
           {/* TODO: create separate component */}
           <div className="container">
-            {isTopItem(rank) && <div className="rank">{rank}</div>}
+            {isTopItem(item, rank) && (
+              <div className="rank big-text">{rank}</div>
+            )}
             <a href="{}" target="_BLANK" className="cover-link">
               <img
-                src={isTrack(item) ? item.albumImageUrl : item.imageUrl}
+                src={
+                  item
+                    ? 'data:image/jpeg;base64, ' +
+                      imageDataMap[
+                        isTrack(item) ? item.albumImageUrl : item.imageUrl
+                      ]
+                    : 'data:image/png;base64, ' +
+                      getBase64DataFromImagePath(
+                        'src/public/images/Spotify_Icon_RGB_Green.png'
+                      )
+                }
                 width={CONTENT_HEIGHT}
                 height={CONTENT_HEIGHT}
                 className="cover"
               />
             </a>
             <div className="text-container">
-              <div className="artist">
-                {isTrack(item) ? item.artist : item.name}
-              </div>
-              {isTrack(item) && (
+              {item ? (
                 <>
-                  <div className="song">
-                    {item.title} • {item.albumTitle}
+                  <div className={isTrack(item) ? 'artist' : 'big-text'}>
+                    {isTrack(item) ? item.artist : item.name}
                   </div>
-                  {/* scrolling animation */}
-                  {/* <div className="song-container">
-                    <div className="song scrolling">
-                      {item.title} • {item.albumTitle}
-                    </div>
-                    <div className="song scrolling" aria-hidden="true">
-                      {item.title} • {item.albumTitle}
-                    </div>
-                    <div className="song scrolling" aria-hidden="true">
-                      {item.title} • {item.albumTitle}
-                    </div>
-                  </div> */}
-                  {isNowPlaying(item, rank) && (
-                    <div className="bars">{generateBarContent(BAR_COUNT)}</div>
+                  {isTrack(item) && (
+                    <>
+                      <div className="song">
+                        {item.title} • {item.albumTitle}
+                      </div>
+                      {/* scrolling animation */}
+                      {/* <div className="song-container">
+                        <div className="song scrolling">
+                          {item.title} • {item.albumTitle}
+                        </div>
+                        <div className="song scrolling" aria-hidden="true">
+                          {item.title} • {item.albumTitle}
+                        </div>
+                        <div className="song scrolling" aria-hidden="true">
+                          {item.title} • {item.albumTitle}
+                        </div>
+                      </div> */}
+                      {isNowPlaying(item, rank) && (
+                        <div className="bars">
+                          {generateBarContent(BAR_COUNT)}
+                        </div>
+                      )}
+                    </>
                   )}
                 </>
+              ) : (
+                <div className="big-text">Nothing</div>
               )}
             </div>
           </div>
@@ -120,8 +136,8 @@ const isNowPlaying = (item: Item, rank?: number) => {
   return isTrack(item) && typeof rank === 'undefined';
 };
 
-const isTopItem = (rank?: number) => {
-  return typeof rank === 'number';
+const isTopItem = (item: Item, rank?: number) => {
+  return item && typeof rank === 'number';
 };
 
 const generateDataCardCellCSS = (item: Item, rank?: number) => {
@@ -133,6 +149,8 @@ const generateDataCardCellCSS = (item: Item, rank?: number) => {
     .container {
       background-color: #121212;
       color: white;
+
+      height: ${CONTENT_HEIGHT}px;
 
       display: flex;
       align-items: center;
@@ -146,28 +164,14 @@ const generateDataCardCellCSS = (item: Item, rank?: number) => {
 
     }
 
+    .big-text {
+      font-weight: 500;
+      font-size: 20px;
+    }
+
     .cover-link {
-      height: ${CONTENT_HEIGHT}px;
+      height: 100%;
       margin-right: ${CELL_PADDING}px;
-    }
-
-    .playing {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-
-      color: #53b14f;
-      font-weight: bold;
-      text-align: center;
-
-      margin-bottom: 8px;
-    }
-
-    .not-play {
-      color: #ff1616;
-      text-align: center;
-
-      margin-bottom: 0;
     }
 
     .text-container {
