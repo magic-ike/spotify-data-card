@@ -2,8 +2,8 @@ import React from 'react';
 import DataCardProps from '../../interfaces/data-card-props.interface';
 import { Item, isTrack } from '../../interfaces/item.interface';
 import StringMap from '../../interfaces/map.interface';
-import { getBase64DataFromImagePath } from '../../utils/image';
-import { randomIntFromInterval } from '../../utils/number';
+import { getBase64DataFromImagePath } from '../../utils/image.util';
+import { randomIntFromInterval } from '../../utils/number.util';
 
 const CELL_WIDTH = 500;
 const CELL_HEIGHT = 80;

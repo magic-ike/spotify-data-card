@@ -16,7 +16,7 @@ const renderPage = () => {
   const refreshToken = localStorage.getItem(REFRESH_TOKEN);
   const loggedIn = userId && refreshToken;
   // temp
-  const imageUrl = 'http://localhost:8080/card?user_id=12146253656';
+  const imageUrl = 'http://localhost:8080/api/card?user_id=12146253656';
 
   const dataCardText = $('.data-card-text');
   const dataCard = $('.data-card');

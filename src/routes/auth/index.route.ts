@@ -1,5 +1,8 @@
 import express from 'express';
-import { auth_login, auth_callback } from '../../controllers/auth.controller';
+import {
+  auth_login,
+  auth_callback
+} from '../../controllers/auth/index.controller';
 
 const authRouter = express.Router();
 

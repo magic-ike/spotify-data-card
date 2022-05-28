@@ -1,5 +1,5 @@
 import { RequestHandler } from 'express';
 
 export const index: RequestHandler = (_req, res) => {
-  res.render('home/index.handlebars');
+  res.render('home/index.view.hbs');
 };

@@ -1,5 +1,5 @@
 import express from 'express';
-import { card_get, card_delete } from '../../controllers/card.controller';
+import { card_get, card_delete } from '../../controllers/api/card.controller';
 
 const cardRouter = express.Router();
 

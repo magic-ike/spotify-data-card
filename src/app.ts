@@ -6,14 +6,14 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import pageRouter from './routes/index.route';
 import authRouter from './routes/auth/index.route';
-import cardRouter from './routes/card/index.route';
+import apiRouter from './routes/api/index.route';
 
 // express app
 const app = express();
 
 // view engine: handlebars
-app.engine('handlebars', engine());
-app.set('view engine', 'handlebars');
+app.engine('.hbs', engine({ extname: '.hbs', defaultLayout: 'main.view.hbs' }));
+app.set('view engine', '.hbs');
 app.set('views', path.join(__dirname, 'views'));
 
 // view engine: tsx
@@ -40,7 +40,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 // routes
 app.use('/', pageRouter);
 app.use('/auth', authRouter);
-app.use('/card', cardRouter);
+app.use('/api', apiRouter);
 app.use((_req, res) => res.sendStatus(404));
 
 export default app;

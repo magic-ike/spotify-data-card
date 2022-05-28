@@ -9,7 +9,7 @@ import 'dotenv/config';
 import mongoose from 'mongoose';
 import app from './app';
 
-import { DB_URI, PORT } from './utils/config';
+import { DB_URI, PORT } from './utils/config.util';
 
 mongoose
   .connect(DB_URI)

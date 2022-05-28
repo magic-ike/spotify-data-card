@@ -1,20 +1,21 @@
 import { RequestHandler, Response } from 'express';
-import TokenMap from '../models/token-map.model';
-import User from '../models/user.model';
-import CardGetRequestQueryParams from '../interfaces/card-get-request-query-params.interface';
-import CardDeleteRequestQueryParams from '../interfaces/card-delete-request-query-params.interface';
-import { isTrack, Item } from '../interfaces/item.interface';
-import Track from '../interfaces/track.interface';
-import Artist from '../interfaces/artist.interface';
-import DataCardProps from '../interfaces/data-card-props.interface';
-import StringMap from '../interfaces/map.interface';
-import { SHORT_URL } from '../utils/config';
-import { boolFromString, boundedIntFromString } from '../utils/string';
-import { getBase64DataFromImageUrl } from '../utils/image';
+import TokenMap from '../../models/token-map.model';
+import User from '../../models/user.model';
+import CardGetRequestQueryParams from '../../interfaces/card-get-request-query-params.interface';
+import CardDeleteRequestQueryParams from '../../interfaces/card-delete-request-query-params.interface';
+import { isTrack, Item } from '../../interfaces/item.interface';
+import Track from '../../interfaces/track.interface';
+import Artist from '../../interfaces/artist.interface';
+import DataCardProps from '../../interfaces/data-card-props.interface';
+import StringMap from '../../interfaces/map.interface';
+import { SHORT_URL } from '../../utils/config.util';
+import { boolFromString, boundedIntFromString } from '../../utils/string.util';
+import { getBase64DataFromImageUrl } from '../../utils/image.util';
 
 const DEFAULT_TOP_ITEM_COUNT = 3;
 const MIN_TOP_ITEM_COUNT = 1;
 const MAX_TOP_ITEM_COUNT = 3;
+const CARD_VIEW_PATH = 'api/card.view.tsx';
 
 // serves a data card
 export const card_get: RequestHandler = async (req, res) => {
@@ -221,7 +222,7 @@ const serveCard = async (
     hideTitle,
     customTitle
   };
-  res.render('card', dataCardProps);
+  res.render(CARD_VIEW_PATH, dataCardProps);
 
   // res.send({
   //   'Currently Playing': nowPlaying ?? 'Nothing',
@@ -244,7 +245,7 @@ const getImageDataMap = async (items: Item[]) => {
 };
 
 const serveErrorCard = (res: Response, errorMessage: string) => {
-  res.render('card', { errorMessage });
+  res.render(CARD_VIEW_PATH, { errorMessage });
 };
 
 const getGenericErrorMessage = (userId: string, userDisplayName?: string) => {
