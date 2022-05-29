@@ -1,4 +1,5 @@
 import React from 'react';
+import pixelWidth from 'string-pixel-width';
 import DataCardProps from '../../interfaces/data-card-props.interface';
 import { Item, isTrack } from '../../interfaces/item.interface';
 import StringMap from '../../interfaces/map.interface';
@@ -7,10 +8,14 @@ import { randomIntFromInterval } from '../../utils/number.util';
 
 const CELL_WIDTH = 500;
 const CELL_HEIGHT = 80;
-const CELL_PADDING = 10;
-const CONTENT_HEIGHT = CELL_HEIGHT - CELL_PADDING * 2;
-const TEXT_CONTENT_WIDTH = CELL_WIDTH - CONTENT_HEIGHT - CELL_PADDING * 3;
-const BAR_COUNT = Math.ceil((TEXT_CONTENT_WIDTH - 1) / 4);
+const CELL_SPACING = 10;
+const RANK_WIDTH = 15;
+const CONTENT_HEIGHT = CELL_HEIGHT - CELL_SPACING * 2;
+const BARS_WIDTH = CELL_WIDTH - CONTENT_HEIGHT - CELL_SPACING * 3;
+const BAR_COUNT = Math.ceil((BARS_WIDTH - 1) / 4);
+
+const TEXT_SIZE = 14;
+const BIG_TEXT_SIZE = 20;
 
 export default function DataCard({
   userDisplayName,
@@ -29,7 +34,7 @@ export default function DataCard({
   return (
     <DataCardCell
       userDisplayName={userDisplayName}
-      item={topTracks[1]}
+      item={topTracks[0]}
       imageDataMap={imageDataMap}
       // rank={1}
     />
@@ -49,6 +54,12 @@ const DataCardCell = ({
   imageDataMap,
   rank
 }: DataCardCellProps) => {
+  const Container = item ? 'a' : 'div';
+  const cellTitle = item ? (isTrack(item) ? item.title : item.name) : 'Nothing';
+  const cellSubtitle = isTrack(item)
+    ? `${item.artist} • ${item.albumTitle}`
+    : '';
+
   return (
     <svg
       width={CELL_WIDTH}
@@ -65,52 +76,70 @@ const DataCardCell = ({
           // @ts-ignore
           xmlns="http://www.w3.org/1999/xhtml"
         >
-          {/* TODO: create separate component */}
-          <div className="container">
+          {/* TODO: move this to separate component */}
+          <Container
+            className="container"
+            href={item?.url}
+            target={item ? '_blank' : undefined}
+            rel={item ? 'noreferrer' : undefined}
+          >
             {isTopItem(item, rank) && (
               <div className="rank big-text">{rank}</div>
             )}
-            <a href="{}" target="_BLANK" className="cover-link">
-              <img
-                src={
-                  item
-                    ? 'data:image/jpeg;base64, ' +
-                      imageDataMap[
-                        isTrack(item) ? item.albumImageUrl : item.imageUrl
-                      ]
-                    : 'data:image/png;base64, ' +
-                      getBase64DataFromImagePath(
-                        'src/public/images/Spotify_Icon_RGB_Green.png'
-                      )
-                }
-                width={CONTENT_HEIGHT}
-                height={CONTENT_HEIGHT}
-                className="cover"
-              />
-            </a>
+            <img
+              src={
+                item
+                  ? 'data:image/jpeg;base64,' +
+                    imageDataMap[
+                      isTrack(item) ? item.albumImageUrl : item.imageUrl
+                    ]
+                  : 'data:image/png;base64,' +
+                    getBase64DataFromImagePath(
+                      'src/public/images/Spotify_Icon_RGB_Green.png'
+                    )
+              }
+              width={CONTENT_HEIGHT}
+              height={CONTENT_HEIGHT}
+            />
             <div className="text-container">
               {item ? (
                 <>
-                  <div className={isTrack(item) ? 'artist' : 'big-text'}>
-                    {isTrack(item) ? item.artist : item.name}
+                  <div
+                    className={
+                      (isTrack(item) ? 'track-title' : 'big-text') +
+                      ' scrolling-container'
+                    }
+                  >
+                    {textOverflows(
+                      cellTitle,
+                      isTrack(item) ? TEXT_SIZE : BIG_TEXT_SIZE,
+                      item,
+                      rank
+                    ) ? (
+                      <>
+                        <div className="scrolling">{cellTitle}</div>
+                        <div className="scrolling" aria-hidden="true">
+                          {cellTitle}
+                        </div>
+                      </>
+                    ) : (
+                      cellTitle
+                    )}
                   </div>
                   {isTrack(item) && (
                     <>
-                      <div className="song">
-                        {item.title} • {item.albumTitle}
+                      <div className="track-subtitle scrolling-container">
+                        {textOverflows(cellSubtitle, TEXT_SIZE, item, rank) ? (
+                          <>
+                            <div className="scrolling">{cellSubtitle}</div>
+                            <div className="scrolling" aria-hidden="true">
+                              {cellSubtitle}
+                            </div>
+                          </>
+                        ) : (
+                          cellSubtitle
+                        )}
                       </div>
-                      {/* scrolling animation */}
-                      {/* <div className="song-container">
-                        <div className="song scrolling">
-                          {item.title} • {item.albumTitle}
-                        </div>
-                        <div className="song scrolling" aria-hidden="true">
-                          {item.title} • {item.albumTitle}
-                        </div>
-                        <div className="song scrolling" aria-hidden="true">
-                          {item.title} • {item.albumTitle}
-                        </div>
-                      </div> */}
                       {isNowPlaying(item, rank) && (
                         <div className="bars">
                           {generateBarContent(BAR_COUNT)}
@@ -120,10 +149,10 @@ const DataCardCell = ({
                   )}
                 </>
               ) : (
-                <div className="big-text">Nothing</div>
+                <div className="big-text">{cellTitle}</div>
               )}
             </div>
-          </div>
+          </Container>
         </div>
       </foreignObject>
     </svg>
@@ -140,10 +169,57 @@ const isTopItem = (item: Item, rank?: number) => {
   return item && typeof rank === 'number';
 };
 
+const textOverflows = (
+  text: string,
+  size: number,
+  item: Item,
+  rank?: number
+) => {
+  const width = pixelWidth(text, {
+    font: 'arial',
+    size: size,
+    bold: true // adds extra width to slightly overestimate
+  });
+  const maxWidth = getTextContainerWidth(item, rank);
+  return width > maxWidth;
+};
+
+const getTextContainerWidth = (item: Item, rank?: number) => {
+  let width = BARS_WIDTH;
+  if (isTopItem(item, rank)) width -= RANK_WIDTH + CELL_SPACING;
+  return width;
+};
+
+const generateBarContent = (barNum: number) => {
+  let barContent: JSX.Element[] = [];
+  for (let i = 0; i < barNum; i++)
+    barContent.push(<div className="bar" key={i}></div>);
+  return barContent;
+};
+
+const generateBarCSS = (barNum: number) => {
+  let barCSS = '';
+  let left = 0;
+  for (let i = 1; i <= barNum; i++) {
+    const anim = randomIntFromInterval(350, 500);
+    barCSS += `.bar:nth-child(${i}) { left: ${left}px; animation-duration: ${anim}ms; }`;
+    left += 4;
+  }
+  return barCSS;
+};
+
 const generateDataCardCellCSS = (item: Item, rank?: number) => {
   return `
     div {
       font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji;
+    }
+
+    a {
+      text-decoration: none;
+    }
+
+    img {
+      object-fit: cover;
     }
 
     .container {
@@ -154,49 +230,51 @@ const generateDataCardCellCSS = (item: Item, rank?: number) => {
 
       display: flex;
       align-items: center;
+      gap: ${CELL_SPACING}px;
 
       border-radius: 10px;
 
-      padding: 10px 10px
+      padding: ${CELL_SPACING}px;
+    }
+
+    .container:hover {
+      background-color: #2a2a2a;
     }
 
     .rank {
-
+      text-align: center;
+      width: ${RANK_WIDTH}px;
     }
 
     .big-text {
       font-weight: 500;
-      font-size: 20px;
-    }
-
-    .cover-link {
-      height: 100%;
-      margin-right: ${CELL_PADDING}px;
+      font-size: ${BIG_TEXT_SIZE}px;
     }
 
     .text-container {
-      width: ${TEXT_CONTENT_WIDTH}px;
+      width: ${getTextContainerWidth(item, rank)}px;
     }
 
-    .artist {
+    .track-title,
+    .track-subtitle {
+      font-size: ${TEXT_SIZE}px;
+    }
+
+    .track-title {
       font-weight: 500;
-      font-size: 14px;
 
       margin-bottom: 3px;
     }
 
-    .song {
+    .track-subtitle {
       color: #b3b3b3;
 
-      font-size: 14px;
-
-      ${isNowPlaying(item, rank) ? `margin-bottom: 18px;` : ''}
+      ${isNowPlaying(item, rank) ? 'margin-bottom: 18px;' : ''}
     }
     
     /* scrolling animation */
 
-    /*
-    .song-container {
+    .scrolling-container {
       overflow: hidden;
       white-space: nowrap;
     }
@@ -216,14 +294,15 @@ const generateDataCardCellCSS = (item: Item, rank?: number) => {
         transform: translateX(-100%);
       }
     }
-    */
 
     /* /scrolling animation */
+
+    /* bars animation */
 
     .bars {
       position: absolute;
       height: 6px;
-      width: ${TEXT_CONTENT_WIDTH}px;
+      width: ${BARS_WIDTH}px;
       overflow: hidden;
       margin: -6px 0 0 0;
     }
@@ -250,22 +329,7 @@ const generateDataCardCellCSS = (item: Item, rank?: number) => {
     }
 
     ${generateBarCSS(BAR_COUNT)}
+
+    /* /bars animation */
   `;
-};
-
-const generateBarContent = (barNum = 75) => {
-  let barContent: JSX.Element[] = [];
-  for (let i = 0; i < barNum; i++) barContent.push(<div className="bar"></div>);
-  return barContent;
-};
-
-const generateBarCSS = (barNum = 75) => {
-  let barCSS = '';
-  let left = 0;
-  for (let i = 1; i <= barNum; i++) {
-    const anim = randomIntFromInterval(350, 500);
-    barCSS += `.bar:nth-child(${i}) { left: ${left}px; animation-duration: ${anim}ms; }`;
-    left += 4;
-  }
-  return barCSS;
 };

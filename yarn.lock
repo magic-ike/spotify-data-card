@@ -817,6 +817,11 @@
   resolved "https://registry.yarnpkg.com/@types/stack-utils/-/stack-utils-2.0.1.tgz#20f18294f797f2209b5f65c8e3b5c8e8261d127c"
   integrity sha512-Hl219/BT5fLAaz6NDkSuhzasy49dwQS/DSdu4MdggFB8zcXv7vflBI3xp7FEmkmdDkBUI2bPUNeMttp2knYdxw==
 
+"@types/string-pixel-width@^1.7.2":
+  version "1.7.2"
+  resolved "https://registry.yarnpkg.com/@types/string-pixel-width/-/string-pixel-width-1.7.2.tgz#76b73c4cf497e8dcd9542e9961731ed3f7eea275"
+  integrity sha512-E3geahr5MB1r1WPVEfpKMC7fCEO9XV3Hbt9CeUip2jNZgTtvzeQAVRmJagJnSeDx/uIsAbk+Ri/smq3yE3CYVw==
+
 "@types/superagent@*":
   version "4.1.15"
   resolved "https://registry.yarnpkg.com/@types/superagent/-/superagent-4.1.15.tgz#63297de457eba5e2bc502a7609426c4cceab434a"
@@ -3009,6 +3014,11 @@ locate-path@^5.0.0:
   dependencies:
     p-locate "^4.1.0"
 
+lodash.deburr@^4.1.0:
+  version "4.1.0"
+  resolved "https://registry.yarnpkg.com/lodash.deburr/-/lodash.deburr-4.1.0.tgz#ddb1bbb3ef07458c0177ba07de14422cb033ff9b"
+  integrity sha1-3bG7s+8HRYwBd7oH3hRCLLAz/5s=
+
 lodash.memoize@4.x:
   version "4.1.2"
   resolved "https://registry.yarnpkg.com/lodash.memoize/-/lodash.memoize-4.1.2.tgz#bcc6c49a42a2840ed997f323eada5ecd182e0bfe"
@@ -3899,6 +3909,13 @@ string-length@^4.0.1:
   dependencies:
     char-regex "^1.0.2"
     strip-ansi "^6.0.0"
+
+string-pixel-width@^1.10.0:
+  version "1.10.0"
+  resolved "https://registry.yarnpkg.com/string-pixel-width/-/string-pixel-width-1.10.0.tgz#aff215aaa7a65627f937d70fcc88d83ae1bc5657"
+  integrity sha512-cOMpkH+CpxWAnrPsWUvPWhZxh25CzUukweT+6WF+Kwx6+G2ksg8flvELZusLyWiZzfFCjj1+QRRGwcPWZlwVYA==
+  dependencies:
+    lodash.deburr "^4.1.0"
 
 string-width@^4.0.0, string-width@^4.1.0, string-width@^4.2.0, string-width@^4.2.2, string-width@^4.2.3:
   version "4.2.3"

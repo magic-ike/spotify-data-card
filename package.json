@@ -26,7 +26,8 @@
     "express-tsx-views": "^1.4.7",
     "mongoose": "^6.3.3",
     "react": "^18.1.0",
-    "react-dom": "^18.1.0"
+    "react-dom": "^18.1.0",
+    "string-pixel-width": "^1.10.0"
   },
   "devDependencies": {
     "@types/cookie-parser": "^1.4.3",
@@ -35,6 +36,7 @@
     "@types/jest": "^27.5.0",
     "@types/node": "^17.0.31",
     "@types/react": "^18.0.9",
+    "@types/string-pixel-width": "^1.7.2",
     "@types/supertest": "^2.0.12",
     "@typescript-eslint/eslint-plugin": "^5.22.0",
     "@typescript-eslint/parser": "^5.22.0",
