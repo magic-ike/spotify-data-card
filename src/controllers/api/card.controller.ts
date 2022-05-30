@@ -51,7 +51,7 @@ export const card_get: RequestHandler = async (req, res) => {
 
   // get options from query params
   const {
-    custom_title: customTitle,
+    custom_title: customTitle, // TODO: clean and trim
     hide_title,
     hide_now_playing,
     hide_top_tracks,
@@ -60,7 +60,7 @@ export const card_get: RequestHandler = async (req, res) => {
     top_track_limit,
     top_artist_limit
   } = cardReqBody;
-  const hideTitle = boolFromString(hide_title);
+  const showTitle = !boolFromString(hide_title);
   const hideExplicitTracks = !boolFromString(show_explicit_tracks);
   const showNowPlaying = !boolFromString(hide_now_playing);
   const showTopTracks = !boolFromString(hide_top_tracks);
@@ -131,7 +131,10 @@ export const card_get: RequestHandler = async (req, res) => {
     nowPlaying,
     topTracks,
     topArtists,
-    hideTitle,
+    showNowPlaying,
+    showTopTracks,
+    showTopArtists,
+    showTitle,
     customTitle
   );
 };
@@ -203,7 +206,10 @@ const serveCard = async (
   nowPlaying: Track | null,
   topTracks: Track[],
   topArtists: Artist[],
-  hideTitle: boolean,
+  showNowPlaying: boolean,
+  showTopTracks: boolean,
+  showTopArtists: boolean,
+  showTitle: boolean,
   customTitle?: string
 ) => {
   // TODO: add cache-control header? (good responses only)
@@ -219,7 +225,10 @@ const serveCard = async (
     topTracks,
     topArtists,
     imageDataMap,
-    hideTitle,
+    showNowPlaying,
+    showTopTracks,
+    showTopArtists,
+    showTitle,
     customTitle
   };
   res.render(CARD_VIEW_PATH, dataCardProps);
@@ -249,8 +258,7 @@ const serveErrorCard = (res: Response, errorMessage: string) => {
 };
 
 const getGenericErrorMessage = (userId: string, userDisplayName?: string) => {
-  return `Something went wrong!<br />
-    ${
-      userDisplayName || `The user with ID ${userId}`
-    } may need to re-generate a card at ${SHORT_URL}.`;
+  return `Something went wrong! ${
+    userDisplayName || `The user with ID ${userId}`
+  } may need to re-generate a card at ${SHORT_URL}.`;
 };

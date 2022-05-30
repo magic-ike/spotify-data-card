@@ -12,7 +12,8 @@ const STATE_KEY = 'spotify_auth_state';
 // requests user authorization
 export const auth_login: RequestHandler = (req, res) => {
   const redirectUri = `${getBaseUrl(req)}/callback`;
-  const scope = 'user-read-currently-playing user-top-read';
+  const scope =
+    'user-read-currently-playing user-read-recently-played user-top-read';
   const state = generateRandomString(16);
 
   res.cookie(STATE_KEY, state, { httpOnly: true });

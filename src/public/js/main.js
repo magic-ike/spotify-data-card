@@ -70,7 +70,7 @@ const deleteCard = async () => {
   const refreshToken = localStorage.getItem(REFRESH_TOKEN);
   let response;
   try {
-    response = await fetch(`/card?user_id=${userId}`, {
+    response = await fetch(`/api/card?user_id=${userId}`, {
       method: 'DELETE',
       headers: {
         Authorization: `Bearer ${refreshToken}`

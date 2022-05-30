@@ -8,7 +8,10 @@ export default interface DataCardProps {
   topTracks: Track[];
   topArtists: Artist[];
   imageDataMap: StringMap;
-  hideTitle: boolean;
+  showNowPlaying: boolean;
+  showTopTracks: boolean;
+  showTopArtists: boolean;
+  showTitle: boolean;
   customTitle?: string;
   errorMessage?: string;
 }

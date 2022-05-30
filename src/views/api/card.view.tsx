@@ -6,156 +6,243 @@ import StringMap from '../../interfaces/map.interface';
 import { getBase64DataFromImagePath } from '../../utils/image.util';
 import { randomIntFromInterval } from '../../utils/number.util';
 
-const CELL_WIDTH = 500;
-const CELL_HEIGHT = 80;
-const CELL_SPACING = 10;
+// card dimensions
+const CARD_SPACING = 10;
+const CARD_TITLE_HEIGHT = 50;
+const CARD_SUBTITLE_HEIGHT = 45;
+
+// cell dimensions
+const CELL_WIDTH = 300;
+const CELL_HEIGHT = 70;
 const RANK_WIDTH = 15;
-const CONTENT_HEIGHT = CELL_HEIGHT - CELL_SPACING * 2;
-const BARS_WIDTH = CELL_WIDTH - CONTENT_HEIGHT - CELL_SPACING * 3;
-const BAR_COUNT = Math.ceil((BARS_WIDTH - 1) / 4);
+const CONTENT_HEIGHT = CELL_HEIGHT - CARD_SPACING * 2;
+const BARS_WIDTH = CELL_WIDTH - CONTENT_HEIGHT - CARD_SPACING * 3;
+const BAR_COUNT = Math.ceil(BARS_WIDTH / 4);
+const ERROR_MESSAGE_WIDTH = CELL_WIDTH * 2;
 
-const TEXT_SIZE = 14;
-const BIG_TEXT_SIZE = 20;
+// font sizes
+const CARD_TITLE_FONT_SIZE = 25;
+const CARD_SUBTITLE_FONT_SIZE = 20;
+const BIG_TEXT_FONT_SIZE = 16;
+const TEXT_FONT_SIZE = 14;
 
+// TODO: use all settings
 export default function DataCard({
-  userDisplayName,
-  nowPlaying,
-  topTracks,
-  topArtists,
-  imageDataMap,
-  hideTitle,
-  customTitle,
-  errorMessage
+  userDisplayName, // ✅
+  nowPlaying, // ✅
+  topTracks, // ✅
+  topArtists, // ✅
+  imageDataMap, // ✅
+  showNowPlaying, // ✅
+  showTopTracks, // ✅
+  showTopArtists, // ✅
+  showTitle, // ✅
+  customTitle, // ✅
+  errorMessage // ✅
 }: DataCardProps) {
-  if (errorMessage) return <div>{errorMessage}</div>;
+  // calculate card size
+  let cardWidth = CARD_SPACING * 2;
+  let cardHeight = CARD_SPACING * 2;
+  if (errorMessage) {
+    cardWidth += ERROR_MESSAGE_WIDTH;
+    cardHeight += CARD_TITLE_HEIGHT;
+  } else {
+    for (const setting of [showTopTracks, showTopArtists]) {
+      if (!setting) continue;
+      cardWidth += CELL_WIDTH;
+    }
 
-  // TODO: use other options
+    // TODO: finish
+    if (showTitle) cardHeight += CARD_TITLE_HEIGHT;
+  }
 
   return (
-    <DataCardCell
-      userDisplayName={userDisplayName}
-      item={topTracks[0]}
-      imageDataMap={imageDataMap}
-      // rank={1}
-    />
+    <svg
+      width={cardWidth}
+      height={1000} // TODO: change
+      xmlns="http://www.w3.org/2000/svg"
+      xmlnsXlink="http://www.w3.org/1999/xlink"
+      role="img"
+      aria-labelledby="title"
+    >
+      <style>{generateDataCardCellCSS()}</style>
+      <foreignObject width="100%" height="100%">
+        <div
+          // @ts-ignore
+          xmlns="http://www.w3.org/1999/xhtml"
+        >
+          <div className="card-container">
+            {errorMessage ? (
+              <div className="card-title error-message scrolling-container">
+                {textOverflows(
+                  errorMessage,
+                  CARD_TITLE_FONT_SIZE,
+                  ERROR_MESSAGE_WIDTH
+                ) ? (
+                  <>
+                    <div id="title" className="scrolling">
+                      {errorMessage}
+                    </div>
+                    <div className="scrolling" aria-hidden="true">
+                      {errorMessage}
+                    </div>
+                  </>
+                ) : (
+                  <div id="title">{errorMessage}</div>
+                )}
+              </div>
+            ) : (
+              <>
+                <div
+                  id="title"
+                  className="card-title"
+                  style={{ display: showTitle ? undefined : 'none' }}
+                >
+                  {customTitle || `${userDisplayName}'s Spotify Data`}
+                </div>
+
+                {showNowPlaying && (
+                  <section className="now-playing-section">
+                    <div className="card-subtitle">Currently Listening To</div>
+                    <DataCardCell
+                      item={nowPlaying}
+                      imageDataMap={imageDataMap}
+                    />
+                  </section>
+                )}
+
+                <div className="other-sections">
+                  {showTopTracks && (
+                    <section>
+                      <div className="card-subtitle">Top Tracks</div>
+                      {topTracks.map((track, i) => (
+                        <DataCardCell
+                          item={track}
+                          imageDataMap={imageDataMap}
+                          rank={i + 1}
+                        />
+                      ))}
+                    </section>
+                  )}
+
+                  {showTopArtists && (
+                    <section>
+                      <div className="card-subtitle">Top Artists</div>
+                      {topArtists.map((artist, i) => (
+                        <DataCardCell
+                          item={artist}
+                          imageDataMap={imageDataMap}
+                          rank={i + 1}
+                        />
+                      ))}
+                    </section>
+                  )}
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      </foreignObject>
+    </svg>
   );
 }
 
 interface DataCardCellProps {
-  userDisplayName: string;
   item: Item;
   imageDataMap: StringMap;
   rank?: number;
 }
 
-const DataCardCell = ({
-  userDisplayName,
-  item,
-  imageDataMap,
-  rank
-}: DataCardCellProps) => {
-  const Container = item ? 'a' : 'div';
+const DataCardCell = ({ item, imageDataMap, rank }: DataCardCellProps) => {
+  const CellContainer = item ? 'a' : 'div';
   const cellTitle = item ? (isTrack(item) ? item.title : item.name) : 'Nothing';
   const cellSubtitle = isTrack(item)
     ? `${item.artist} • ${item.albumTitle}`
     : '';
 
   return (
-    <svg
-      width={CELL_WIDTH}
-      height={CELL_HEIGHT}
-      xmlns="http://www.w3.org/2000/svg"
-      xmlnsXlink="http://www.w3.org/1999/xlink"
-      role="img"
-      aria-labelledby="card-title"
+    <CellContainer
+      className="cell-container"
+      href={item?.url}
+      target={item ? '_blank' : undefined}
+      rel={item ? 'noreferrer' : undefined}
     >
-      <title id="card-title">{userDisplayName}'s Spotify Data</title>
-      <style>{generateDataCardCellCSS(item, rank)}</style>
-      <foreignObject width="100%" height="100%">
-        <div
-          // @ts-ignore
-          xmlns="http://www.w3.org/1999/xhtml"
-        >
-          {/* TODO: move this to separate component */}
-          <Container
-            className="container"
-            href={item?.url}
-            target={item ? '_blank' : undefined}
-            rel={item ? 'noreferrer' : undefined}
-          >
-            {isTopItem(item, rank) && (
-              <div className="rank big-text">{rank}</div>
-            )}
-            <img
-              src={
-                item
-                  ? 'data:image/jpeg;base64,' +
-                    imageDataMap[
-                      isTrack(item) ? item.albumImageUrl : item.imageUrl
-                    ]
-                  : 'data:image/png;base64,' +
-                    getBase64DataFromImagePath(
-                      'src/public/images/Spotify_Icon_RGB_Green.png'
-                    )
+      {isTopItem(item, rank) && <div className="rank big-text">{rank}</div>}
+      <img
+        src={
+          item
+            ? 'data:image/jpeg;base64,' +
+              imageDataMap[isTrack(item) ? item.albumImageUrl : item.imageUrl]
+            : 'data:image/png;base64,' +
+              getBase64DataFromImagePath(
+                'src/public/images/Spotify_Icon_RGB_Green.png'
+              )
+        }
+        width={CONTENT_HEIGHT}
+        height={CONTENT_HEIGHT}
+        className="cover"
+      />
+      <div
+        className="text-container"
+        style={{ width: getTextContainerWidth(item, rank) }}
+      >
+        {item ? (
+          <>
+            <div
+              className={
+                (isTrack(item) ? 'track-title' : 'big-text') +
+                ' scrolling-container'
               }
-              width={CONTENT_HEIGHT}
-              height={CONTENT_HEIGHT}
-            />
-            <div className="text-container">
-              {item ? (
+            >
+              {textOverflows(
+                cellTitle,
+                isTrack(item) ? TEXT_FONT_SIZE : BIG_TEXT_FONT_SIZE,
+                getTextContainerWidth(item, rank)
+              ) ? (
                 <>
-                  <div
-                    className={
-                      (isTrack(item) ? 'track-title' : 'big-text') +
-                      ' scrolling-container'
-                    }
-                  >
-                    {textOverflows(
-                      cellTitle,
-                      isTrack(item) ? TEXT_SIZE : BIG_TEXT_SIZE,
-                      item,
-                      rank
-                    ) ? (
-                      <>
-                        <div className="scrolling">{cellTitle}</div>
-                        <div className="scrolling" aria-hidden="true">
-                          {cellTitle}
-                        </div>
-                      </>
-                    ) : (
-                      cellTitle
-                    )}
+                  <div className="scrolling">{cellTitle}</div>
+                  <div className="scrolling" aria-hidden="true">
+                    {cellTitle}
                   </div>
-                  {isTrack(item) && (
-                    <>
-                      <div className="track-subtitle scrolling-container">
-                        {textOverflows(cellSubtitle, TEXT_SIZE, item, rank) ? (
-                          <>
-                            <div className="scrolling">{cellSubtitle}</div>
-                            <div className="scrolling" aria-hidden="true">
-                              {cellSubtitle}
-                            </div>
-                          </>
-                        ) : (
-                          cellSubtitle
-                        )}
-                      </div>
-                      {isNowPlaying(item, rank) && (
-                        <div className="bars">
-                          {generateBarContent(BAR_COUNT)}
-                        </div>
-                      )}
-                    </>
-                  )}
                 </>
               ) : (
-                <div className="big-text">{cellTitle}</div>
+                cellTitle
               )}
             </div>
-          </Container>
-        </div>
-      </foreignObject>
-    </svg>
+            {isTrack(item) && (
+              <>
+                <div
+                  className="track-subtitle scrolling-container"
+                  style={{
+                    marginBottom: isNowPlaying(item, rank) ? 14 : undefined
+                  }}
+                >
+                  {textOverflows(
+                    cellSubtitle,
+                    TEXT_FONT_SIZE,
+                    getTextContainerWidth(item, rank)
+                  ) ? (
+                    <>
+                      <div className="scrolling">{cellSubtitle}</div>
+                      <div className="scrolling" aria-hidden="true">
+                        {cellSubtitle}
+                      </div>
+                    </>
+                  ) : (
+                    cellSubtitle
+                  )}
+                </div>
+                {isNowPlaying(item, rank) && (
+                  <div className="bars">{generateBarContent()}</div>
+                )}
+              </>
+            )}
+          </>
+        ) : (
+          <div className="big-text">{cellTitle}</div>
+        )}
+      </div>
+    </CellContainer>
   );
 };
 
@@ -169,38 +256,32 @@ const isTopItem = (item: Item, rank?: number) => {
   return item && typeof rank === 'number';
 };
 
-const textOverflows = (
-  text: string,
-  size: number,
-  item: Item,
-  rank?: number
-) => {
+const textOverflows = (text: string, size: number, maxWidth: number) => {
   const width = pixelWidth(text, {
     font: 'arial',
     size: size,
     bold: true // adds extra width to slightly overestimate
   });
-  const maxWidth = getTextContainerWidth(item, rank);
   return width > maxWidth;
 };
 
 const getTextContainerWidth = (item: Item, rank?: number) => {
   let width = BARS_WIDTH;
-  if (isTopItem(item, rank)) width -= RANK_WIDTH + CELL_SPACING;
+  if (isTopItem(item, rank)) width -= RANK_WIDTH + CARD_SPACING;
   return width;
 };
 
-const generateBarContent = (barNum: number) => {
+const generateBarContent = () => {
   let barContent: JSX.Element[] = [];
-  for (let i = 0; i < barNum; i++)
+  for (let i = 0; i < BAR_COUNT; i++)
     barContent.push(<div className="bar" key={i}></div>);
   return barContent;
 };
 
-const generateBarCSS = (barNum: number) => {
+const generateBarCSS = () => {
   let barCSS = '';
   let left = 0;
-  for (let i = 1; i <= barNum; i++) {
+  for (let i = 1; i <= BAR_COUNT; i++) {
     const anim = randomIntFromInterval(350, 500);
     barCSS += `.bar:nth-child(${i}) { left: ${left}px; animation-duration: ${anim}ms; }`;
     left += 4;
@@ -208,10 +289,19 @@ const generateBarCSS = (barNum: number) => {
   return barCSS;
 };
 
-const generateDataCardCellCSS = (item: Item, rank?: number) => {
+const generateDataCardCellCSS = () => {
   return `
+    * {
+      box-sizing: border-box;
+    }
+
+    :root {
+      --green: #1db954;
+    }
+
     div {
       font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji;
+      font-weight: 500;
     }
 
     a {
@@ -222,23 +312,63 @@ const generateDataCardCellCSS = (item: Item, rank?: number) => {
       object-fit: cover;
     }
 
-    .container {
+    .card-container {
       background-color: #121212;
       color: white;
+      border-radius: 15px;
+      overflow: hidden;
+    }
 
-      height: ${CONTENT_HEIGHT}px;
+    .error-message {
+      color: red !important;
+    }
+
+    .card-title {
+      color: var(--green);
+      font-size: ${CARD_TITLE_FONT_SIZE}px;
+      height: ${CARD_TITLE_HEIGHT}px;
+    }
+
+    .card-subtitle {
+      font-size: ${CARD_SUBTITLE_FONT_SIZE}px;
+      height: ${CARD_SUBTITLE_HEIGHT}px;
+    }
+
+    .card-title,
+    .card-subtitle {
+      text-align: center;
+    }
+
+    .now-playing-section {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .other-sections {
+      display: flex;
+      justify-content: center;
+    }
+
+    .cell-container {
+      color: inherit;
+
+      height: ${CELL_HEIGHT}px;
 
       display: flex;
       align-items: center;
-      gap: ${CELL_SPACING}px;
-
-      border-radius: 10px;
-
-      padding: ${CELL_SPACING}px;
+      gap: ${CARD_SPACING}px;
     }
 
-    .container:hover {
+    .cell-container:hover {
       background-color: #2a2a2a;
+    }
+
+    .card-container,
+    .card-title,
+    .card-subtitle,
+    .cell-container {
+      padding: ${CARD_SPACING}px;
     }
 
     .rank {
@@ -247,29 +377,25 @@ const generateDataCardCellCSS = (item: Item, rank?: number) => {
     }
 
     .big-text {
-      font-weight: 500;
-      font-size: ${BIG_TEXT_SIZE}px;
+      font-size: ${BIG_TEXT_FONT_SIZE}px;
     }
 
-    .text-container {
-      width: ${getTextContainerWidth(item, rank)}px;
-    }
+    .cover {}
 
-    .track-title,
-    .track-subtitle {
-      font-size: ${TEXT_SIZE}px;
-    }
+    .text-container {}
 
     .track-title {
-      font-weight: 500;
-
       margin-bottom: 3px;
     }
 
     .track-subtitle {
       color: #b3b3b3;
+      font-weight: 400;
+    }
 
-      ${isNowPlaying(item, rank) ? 'margin-bottom: 18px;' : ''}
+    .track-title,
+    .track-subtitle {
+      font-size: ${TEXT_FONT_SIZE}px;
     }
     
     /* scrolling animation */
@@ -280,17 +406,17 @@ const generateDataCardCellCSS = (item: Item, rank?: number) => {
     }
 
     .scrolling {
-      animation: marquee 8s linear infinite;
+      animation: marquee 10s linear infinite;
       display: inline-block;
       padding-right: 20px;
     }
 
     @keyframes marquee {
-      from {
+      20% {
         transform: translateX(0);
       }
 
-      to {
+      100% {
         transform: translateX(-100%);
       }
     }
@@ -308,7 +434,7 @@ const generateDataCardCellCSS = (item: Item, rank?: number) => {
     }
 
     .bar {
-      background: #53b14f;
+      background: var(--green);
       bottom: 1px;
       height: 3px;
       position: absolute;
@@ -328,7 +454,7 @@ const generateDataCardCellCSS = (item: Item, rank?: number) => {
       }
     }
 
-    ${generateBarCSS(BAR_COUNT)}
+    ${generateBarCSS()}
 
     /* /bars animation */
   `;
