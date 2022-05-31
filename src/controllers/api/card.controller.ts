@@ -12,9 +12,9 @@ import { SHORT_URL } from '../../utils/config.util';
 import { boolFromString, boundedIntFromString } from '../../utils/string.util';
 import { getBase64DataFromImageUrl } from '../../utils/image.util';
 
-const DEFAULT_TOP_ITEM_COUNT = 3;
-const MIN_TOP_ITEM_COUNT = 1;
-const MAX_TOP_ITEM_COUNT = 3;
+const DEFAULT_ITEM_COUNT = 5;
+const MIN_ITEM_COUNT = 1;
+const MAX_ITEM_COUNT = 10;
 const CARD_VIEW_PATH = 'api/card.view.tsx';
 
 // serves a data card
@@ -53,33 +53,35 @@ export const card_get: RequestHandler = async (req, res) => {
   const {
     custom_title: customTitle, // TODO: clean and trim
     hide_title,
-    hide_now_playing,
+    hide_playing,
+    hide_recents,
     hide_top_tracks,
     hide_top_artists,
-    show_explicit_tracks,
-    top_track_limit,
-    top_artist_limit
+    hide_explicit,
+    show_border,
+    limit
   } = cardReqBody;
   const showTitle = !boolFromString(hide_title);
-  const hideExplicitTracks = !boolFromString(show_explicit_tracks);
-  const showNowPlaying = !boolFromString(hide_now_playing);
+  const showNowPlaying = !boolFromString(hide_playing);
+  const showRecentlyPlayed = !boolFromString(hide_recents);
   const showTopTracks = !boolFromString(hide_top_tracks);
   const showTopArtists = !boolFromString(hide_top_artists);
-  const topTrackLimit = boundedIntFromString(
-    MIN_TOP_ITEM_COUNT,
-    MAX_TOP_ITEM_COUNT,
-    DEFAULT_TOP_ITEM_COUNT,
-    top_track_limit
-  );
-  const topArtistLimit = boundedIntFromString(
-    MIN_TOP_ITEM_COUNT,
-    MAX_TOP_ITEM_COUNT,
-    DEFAULT_TOP_ITEM_COUNT,
-    top_artist_limit
+  const hideExplicit = boolFromString(hide_explicit);
+  const showBorder = boolFromString(show_border);
+  const itemLimit = boundedIntFromString(
+    MIN_ITEM_COUNT,
+    MAX_ITEM_COUNT,
+    DEFAULT_ITEM_COUNT,
+    limit
   );
 
   // serve error card if no data is visible
-  if (!showNowPlaying && !showTopTracks && !showTopArtists) {
+  if (
+    !showNowPlaying &&
+    !showRecentlyPlayed &&
+    !showTopTracks &&
+    !showTopArtists
+  ) {
     serveErrorCard(
       res,
       `${userDisplayName} doesn't want to show any of their Spotify data. 🤷🏾‍♂️`
@@ -91,7 +93,22 @@ export const card_get: RequestHandler = async (req, res) => {
   let nowPlaying = null;
   if (showNowPlaying) {
     try {
-      nowPlaying = await User.getNowPlaying(accessToken, hideExplicitTracks);
+      nowPlaying = await User.getNowPlaying(accessToken, hideExplicit);
+    } catch (error) {
+      serveErrorCard(res, getGenericErrorMessage(userId, userDisplayName));
+      return;
+    }
+  }
+
+  // get recently played tracks
+  let recentlyPlayed: Track[] = [];
+  if (showRecentlyPlayed) {
+    try {
+      recentlyPlayed = await User.getRecentlyPlayed(
+        accessToken,
+        hideExplicit,
+        itemLimit
+      );
     } catch (error) {
       serveErrorCard(res, getGenericErrorMessage(userId, userDisplayName));
       return;
@@ -102,11 +119,7 @@ export const card_get: RequestHandler = async (req, res) => {
   let topTracks: Track[] = [];
   if (showTopTracks) {
     try {
-      topTracks = await User.getTopTracks(
-        accessToken,
-        hideExplicitTracks,
-        topTrackLimit
-      );
+      topTracks = await User.getTopTracks(accessToken, hideExplicit, itemLimit);
     } catch (error) {
       serveErrorCard(res, getGenericErrorMessage(userId, userDisplayName));
       return;
@@ -117,7 +130,7 @@ export const card_get: RequestHandler = async (req, res) => {
   let topArtists: Artist[] = [];
   if (showTopArtists) {
     try {
-      topArtists = await User.getTopArtists(accessToken, topArtistLimit);
+      topArtists = await User.getTopArtists(accessToken, itemLimit);
     } catch (error) {
       serveErrorCard(res, getGenericErrorMessage(userId, userDisplayName));
       return;
@@ -128,13 +141,18 @@ export const card_get: RequestHandler = async (req, res) => {
   serveCard(
     res,
     userDisplayName,
+    showTitle,
     nowPlaying,
+    recentlyPlayed,
     topTracks,
     topArtists,
     showNowPlaying,
+    showRecentlyPlayed,
     showTopTracks,
     showTopArtists,
-    showTitle,
+    hideExplicit,
+    showBorder,
+    itemLimit,
     customTitle
   );
 };
@@ -203,41 +221,46 @@ export const card_delete: RequestHandler = async (req, res) => {
 const serveCard = async (
   res: Response,
   userDisplayName: string,
+  showTitle: boolean,
   nowPlaying: Track | null,
+  recentlyPlayed: Track[],
   topTracks: Track[],
   topArtists: Artist[],
   showNowPlaying: boolean,
+  showRecentlyPlayed: boolean,
   showTopTracks: boolean,
   showTopArtists: boolean,
-  showTitle: boolean,
+  hideExplicit: boolean,
+  showBorder: boolean,
+  itemLimit: number,
   customTitle?: string
 ) => {
   // TODO: add cache-control header? (good responses only)
 
   const imageDataMap = await getImageDataMap([
     nowPlaying,
+    ...recentlyPlayed,
     ...topTracks,
     ...topArtists
   ]);
   const dataCardProps: DataCardProps = {
     userDisplayName,
+    customTitle,
+    showTitle,
     nowPlaying,
+    recentlyPlayed,
     topTracks,
     topArtists,
     imageDataMap,
     showNowPlaying,
+    showRecentlyPlayed,
     showTopTracks,
     showTopArtists,
-    showTitle,
-    customTitle
+    hideExplicit,
+    showBorder,
+    itemLimit
   };
   res.render(CARD_VIEW_PATH, dataCardProps);
-
-  // res.send({
-  //   'Currently Playing': nowPlaying ?? 'Nothing',
-  //   'Top Tracks': topTracks,
-  //   'Top Artists': topArtists
-  // });
 };
 
 const getImageDataMap = async (items: Item[]) => {

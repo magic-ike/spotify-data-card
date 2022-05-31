@@ -17,7 +17,7 @@
   --spotify-bg: #1ae68c;
   /* --spotify-bg-dark: #222326; */
   --std-spacing: 3rem;
-  --content-width: 500px;
+  --content-width: 920px;
   --btn-width: 12rem;
   --footer-height: 5rem;
 
@@ -91,7 +91,6 @@ a:hover {
 }
 
 .delete-btn {
-  /* TODO: pick better red? */
   color: red;
 }
 

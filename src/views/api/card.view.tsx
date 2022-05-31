@@ -3,7 +3,6 @@ import pixelWidth from 'string-pixel-width';
 import DataCardProps from '../../interfaces/data-card-props.interface';
 import { Item, isTrack } from '../../interfaces/item.interface';
 import StringMap from '../../interfaces/map.interface';
-import { getBase64DataFromImagePath } from '../../utils/image.util';
 import { randomIntFromInterval } from '../../utils/number.util';
 
 // card dimensions
@@ -26,19 +25,23 @@ const CARD_SUBTITLE_FONT_SIZE = 20;
 const BIG_TEXT_FONT_SIZE = 16;
 const TEXT_FONT_SIZE = 14;
 
-// TODO: use all settings
 export default function DataCard({
-  userDisplayName, // ✅
-  nowPlaying, // ✅
-  topTracks, // ✅
-  topArtists, // ✅
-  imageDataMap, // ✅
-  showNowPlaying, // ✅
-  showTopTracks, // ✅
-  showTopArtists, // ✅
-  showTitle, // ✅
-  customTitle, // ✅
-  errorMessage // ✅
+  userDisplayName,
+  customTitle,
+  showTitle,
+  nowPlaying,
+  recentlyPlayed,
+  topTracks,
+  topArtists,
+  imageDataMap,
+  showNowPlaying,
+  showRecentlyPlayed,
+  showTopTracks,
+  showTopArtists,
+  hideExplicit,
+  showBorder,
+  itemLimit,
+  errorMessage
 }: DataCardProps) {
   // calculate card size
   let cardWidth = CARD_SPACING * 2;
@@ -47,21 +50,26 @@ export default function DataCard({
     cardWidth += ERROR_MESSAGE_WIDTH;
     cardHeight += CARD_TITLE_HEIGHT;
   } else {
-    for (const setting of [showTopTracks, showTopArtists]) {
+    // card width
+    let minCardWidth = cardWidth + CELL_WIDTH;
+    for (const setting of [showRecentlyPlayed, showTopTracks, showTopArtists]) {
       if (!setting) continue;
       cardWidth += CELL_WIDTH;
     }
+    cardWidth = Math.max(cardWidth, minCardWidth);
 
-    // TODO: finish
+    // card height
     if (showTitle) cardHeight += CARD_TITLE_HEIGHT;
+    if (showNowPlaying) cardHeight += CARD_SUBTITLE_HEIGHT + CELL_HEIGHT;
+    if (showRecentlyPlayed || showTopTracks || showTopArtists)
+      cardHeight += CARD_SUBTITLE_HEIGHT + CELL_HEIGHT * itemLimit;
   }
 
   return (
     <svg
       width={cardWidth}
-      height={1000} // TODO: change
+      height={cardHeight}
       xmlns="http://www.w3.org/2000/svg"
-      xmlnsXlink="http://www.w3.org/1999/xlink"
       role="img"
       aria-labelledby="title"
     >
@@ -71,7 +79,10 @@ export default function DataCard({
           // @ts-ignore
           xmlns="http://www.w3.org/1999/xhtml"
         >
-          <div className="card-container">
+          <div
+            className="card-container"
+            style={{ border: showBorder ? '3px solid white' : undefined }}
+          >
             {errorMessage ? (
               <div className="card-title error-message scrolling-container">
                 {textOverflows(
@@ -98,7 +109,10 @@ export default function DataCard({
                   className="card-title"
                   style={{ display: showTitle ? undefined : 'none' }}
                 >
-                  {customTitle || `${userDisplayName}'s Spotify Data`}
+                  {customTitle ||
+                    `${userDisplayName}'s Spotify Data${
+                      hideExplicit ? ' (Clean)' : ''
+                    }`}
                 </div>
 
                 {showNowPlaying && (
@@ -112,6 +126,21 @@ export default function DataCard({
                 )}
 
                 <div className="other-sections">
+                  {showRecentlyPlayed && (
+                    <section>
+                      <div className="card-subtitle">
+                        Recently Played Tracks
+                      </div>
+                      {recentlyPlayed.map((track, i) => (
+                        <DataCardCell
+                          item={track}
+                          imageDataMap={imageDataMap}
+                          rank={i + 1}
+                        />
+                      ))}
+                    </section>
+                  )}
+
                   {showTopTracks && (
                     <section>
                       <div className="card-subtitle">Top Tracks</div>
@@ -167,27 +196,22 @@ const DataCardCell = ({ item, imageDataMap, rank }: DataCardCellProps) => {
       target={item ? '_blank' : undefined}
       rel={item ? 'noreferrer' : undefined}
     >
-      {isTopItem(item, rank) && <div className="rank big-text">{rank}</div>}
-      <img
-        src={
-          item
-            ? 'data:image/jpeg;base64,' +
+      {item ? (
+        <>
+          {isTopItem(item, rank) && <div className="rank big-text">{rank}</div>}
+          <img
+            src={
+              'data:image/jpeg;base64,' +
               imageDataMap[isTrack(item) ? item.albumImageUrl : item.imageUrl]
-            : 'data:image/png;base64,' +
-              getBase64DataFromImagePath(
-                'src/public/images/Spotify_Icon_RGB_Green.png'
-              )
-        }
-        width={CONTENT_HEIGHT}
-        height={CONTENT_HEIGHT}
-        className="cover"
-      />
-      <div
-        className="text-container"
-        style={{ width: getTextContainerWidth(item, rank) }}
-      >
-        {item ? (
-          <>
+            }
+            width={CONTENT_HEIGHT}
+            height={CONTENT_HEIGHT}
+            className="cover"
+          />
+          <div
+            className="text-container"
+            style={{ width: getTextContainerWidth(item, rank) }}
+          >
             <div
               className={
                 (isTrack(item) ? 'track-title' : 'big-text') +
@@ -237,11 +261,11 @@ const DataCardCell = ({ item, imageDataMap, rank }: DataCardCellProps) => {
                 )}
               </>
             )}
-          </>
-        ) : (
-          <div className="big-text">{cellTitle}</div>
-        )}
-      </div>
+          </div>
+        </>
+      ) : (
+        <div className="not-playing big-text">{cellTitle}</div>
+      )}
     </CellContainer>
   );
 };
@@ -296,6 +320,9 @@ const generateDataCardCellCSS = () => {
     }
 
     :root {
+      --black: #121212;
+      --gray: #2a2a2a;
+      --light-gray: #b3b3b3;
       --green: #1db954;
     }
 
@@ -313,7 +340,7 @@ const generateDataCardCellCSS = () => {
     }
 
     .card-container {
-      background-color: #121212;
+      background-color: var(--black);
       color: white;
       border-radius: 15px;
       overflow: hidden;
@@ -353,6 +380,7 @@ const generateDataCardCellCSS = () => {
     .cell-container {
       color: inherit;
 
+      width: ${CELL_WIDTH}px;
       height: ${CELL_HEIGHT}px;
 
       display: flex;
@@ -361,7 +389,7 @@ const generateDataCardCellCSS = () => {
     }
 
     .cell-container:hover {
-      background-color: #2a2a2a;
+      background-color: var(--gray);
     }
 
     .card-container,
@@ -389,13 +417,18 @@ const generateDataCardCellCSS = () => {
     }
 
     .track-subtitle {
-      color: #b3b3b3;
+      color: var(--light-gray);
       font-weight: 400;
     }
 
     .track-title,
     .track-subtitle {
       font-size: ${TEXT_FONT_SIZE}px;
+    }
+
+    .not-playing {
+      text-align: center;
+      width: 100%;
     }
     
     /* scrolling animation */
