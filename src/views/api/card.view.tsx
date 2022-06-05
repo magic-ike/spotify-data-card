@@ -4,19 +4,26 @@ import DataCardProps from '../../interfaces/data-card-props.interface';
 import { Item, isTrack } from '../../interfaces/item.interface';
 import StringMap from '../../interfaces/map.interface';
 import { randomIntFromInterval } from '../../utils/number.util';
+import { getBase64DataFromImagePath } from '../../utils/image.util';
+import { SHORT_URL } from '../../utils/config.util';
 
 // card dimensions
 const CARD_SPACING = 10;
 const CARD_TITLE_HEIGHT = 50;
 const CARD_SUBTITLE_HEIGHT = 45;
+const ATTRIBUTION_HEIGHT = 45;
 
 // cell dimensions
 const CELL_WIDTH = 300;
 const CELL_HEIGHT = 70;
 const RANK_WIDTH = 15;
 const CONTENT_HEIGHT = CELL_HEIGHT - CARD_SPACING * 2;
-const BARS_WIDTH = CELL_WIDTH - CONTENT_HEIGHT - CARD_SPACING * 3;
-const BAR_COUNT = Math.ceil(BARS_WIDTH / 4);
+const TEXT_CONTENT_WIDTH =
+  CELL_WIDTH - RANK_WIDTH - CONTENT_HEIGHT - CARD_SPACING * 4;
+const BAR_COUNT = Math.ceil(TEXT_CONTENT_WIDTH / 4);
+const EXPLICIT_TAG_WIDTH = 16;
+const EXPLICIT_TAG_MARGIN = 8;
+const EXPLICIT_TAG_SPACE = EXPLICIT_TAG_WIDTH + EXPLICIT_TAG_MARGIN;
 const ERROR_MESSAGE_WIDTH = CELL_WIDTH * 2;
 
 // font sizes
@@ -45,7 +52,7 @@ export default function DataCard({
 }: DataCardProps) {
   // calculate card size
   let cardWidth = CARD_SPACING * 2;
-  let cardHeight = CARD_SPACING * 2;
+  let cardHeight = ATTRIBUTION_HEIGHT + CARD_SPACING * 3;
   if (errorMessage) {
     cardWidth += ERROR_MESSAGE_WIDTH;
     cardHeight += CARD_TITLE_HEIGHT;
@@ -136,6 +143,7 @@ export default function DataCard({
                           item={track}
                           imageDataMap={imageDataMap}
                           rank={i + 1}
+                          key={`recent-${i}`}
                         />
                       ))}
                     </section>
@@ -149,6 +157,7 @@ export default function DataCard({
                           item={track}
                           imageDataMap={imageDataMap}
                           rank={i + 1}
+                          key={`top-track-${i}`}
                         />
                       ))}
                     </section>
@@ -162,6 +171,7 @@ export default function DataCard({
                           item={artist}
                           imageDataMap={imageDataMap}
                           rank={i + 1}
+                          key={`top-artist-${i}`}
                         />
                       ))}
                     </section>
@@ -169,6 +179,28 @@ export default function DataCard({
                 </div>
               </>
             )}
+            <div className="attribution">
+              <a
+                href="https://www.spotify.com"
+                target="_blank"
+                rel="noreferrer"
+                className="spotify-link"
+              >
+                <img
+                  src={
+                    'data:image/png;base64,' +
+                    getBase64DataFromImagePath(
+                      'src/public/images/Spotify_Logo_RGB_White.png'
+                    )
+                  }
+                  alt="spotify.com"
+                  className="spotify-logo"
+                />
+              </a>
+              <a href="/" className="short-url">
+                {SHORT_URL}
+              </a>
+            </div>
           </div>
         </div>
       </foreignObject>
@@ -188,17 +220,25 @@ const DataCardCell = ({ item, imageDataMap, rank }: DataCardCellProps) => {
   const cellSubtitle = isTrack(item)
     ? `${item.artist} • ${item.albumTitle}`
     : '';
+  const cellSubtitleJSX = (
+    <div className="track-subtitle-container">
+      {isTrack(item) && item.explicit && <div className="explicit-tag">E</div>}
+      {cellSubtitle}
+    </div>
+  );
 
   return (
     <CellContainer
-      className="cell-container"
       href={item?.url}
       target={item ? '_blank' : undefined}
       rel={item ? 'noreferrer' : undefined}
+      className="cell-container"
     >
       {item ? (
         <>
-          {isTopItem(item, rank) && <div className="rank big-text">{rank}</div>}
+          <div className="rank big-text">
+            {isTopItem(item, rank) ? rank : '🔊'}
+          </div>
           <img
             src={
               'data:image/jpeg;base64,' +
@@ -208,10 +248,7 @@ const DataCardCell = ({ item, imageDataMap, rank }: DataCardCellProps) => {
             height={CONTENT_HEIGHT}
             className="cover"
           />
-          <div
-            className="text-container"
-            style={{ width: getTextContainerWidth(item, rank) }}
-          >
+          <div className="text-container">
             <div
               className={
                 (isTrack(item) ? 'track-title' : 'big-text') +
@@ -221,7 +258,7 @@ const DataCardCell = ({ item, imageDataMap, rank }: DataCardCellProps) => {
               {textOverflows(
                 cellTitle,
                 isTrack(item) ? TEXT_FONT_SIZE : BIG_TEXT_FONT_SIZE,
-                getTextContainerWidth(item, rank)
+                TEXT_CONTENT_WIDTH
               ) ? (
                 <>
                   <div className="scrolling">{cellTitle}</div>
@@ -244,16 +281,17 @@ const DataCardCell = ({ item, imageDataMap, rank }: DataCardCellProps) => {
                   {textOverflows(
                     cellSubtitle,
                     TEXT_FONT_SIZE,
-                    getTextContainerWidth(item, rank)
+                    TEXT_CONTENT_WIDTH,
+                    item.explicit ? EXPLICIT_TAG_SPACE : undefined
                   ) ? (
                     <>
-                      <div className="scrolling">{cellSubtitle}</div>
+                      <div className="scrolling">{cellSubtitleJSX}</div>
                       <div className="scrolling" aria-hidden="true">
-                        {cellSubtitle}
+                        {cellSubtitleJSX}
                       </div>
                     </>
                   ) : (
-                    cellSubtitle
+                    cellSubtitleJSX
                   )}
                 </div>
                 {isNowPlaying(item, rank) && (
@@ -280,25 +318,25 @@ const isTopItem = (item: Item, rank?: number) => {
   return item && typeof rank === 'number';
 };
 
-const textOverflows = (text: string, size: number, maxWidth: number) => {
-  const width = pixelWidth(text, {
-    font: 'arial',
-    size: size,
-    bold: true // adds extra width to slightly overestimate
-  });
+const textOverflows = (
+  text: string,
+  size: number,
+  maxWidth: number,
+  extraWidth?: number
+) => {
+  const width =
+    pixelWidth(text, {
+      font: 'arial',
+      size: size,
+      bold: true // adds extra width to slightly overestimate
+    }) + (extraWidth ?? 0);
   return width > maxWidth;
-};
-
-const getTextContainerWidth = (item: Item, rank?: number) => {
-  let width = BARS_WIDTH;
-  if (isTopItem(item, rank)) width -= RANK_WIDTH + CARD_SPACING;
-  return width;
 };
 
 const generateBarContent = () => {
   let barContent: JSX.Element[] = [];
   for (let i = 0; i < BAR_COUNT; i++)
-    barContent.push(<div className="bar" key={i}></div>);
+    barContent.push(<div className="bar" key={`bar-${i}`}></div>);
   return barContent;
 };
 
@@ -316,6 +354,7 @@ const generateBarCSS = () => {
 const generateDataCardCellCSS = () => {
   return `
     * {
+      color: inherit;
       box-sizing: border-box;
     }
 
@@ -346,24 +385,60 @@ const generateDataCardCellCSS = () => {
       overflow: hidden;
     }
 
+    .attribution {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      height: ${ATTRIBUTION_HEIGHT}px;
+    }
+
+    .spotify-link,
+    .spotify-logo {
+      height: 100%;
+    }
+
+    .short-url {
+      font-size: ${BIG_TEXT_FONT_SIZE}px;
+    }
+
     .error-message {
       color: red !important;
     }
 
     .card-title {
-      color: var(--green);
       font-size: ${CARD_TITLE_FONT_SIZE}px;
+      font-weight: 700;
+      line-height: ${CARD_TITLE_HEIGHT - CARD_SPACING * 2}px;
       height: ${CARD_TITLE_HEIGHT}px;
     }
 
     .card-subtitle {
       font-size: ${CARD_SUBTITLE_FONT_SIZE}px;
+      line-height: ${CARD_SUBTITLE_HEIGHT - CARD_SPACING * 2}px;
       height: ${CARD_SUBTITLE_HEIGHT}px;
     }
 
     .card-title,
     .card-subtitle {
       text-align: center;
+    }
+
+    .explicit-tag {
+      background-color: var(--light-gray);
+      color: var(--black);
+      font-size: 10px;
+      text-align: center;
+      line-height: ${EXPLICIT_TAG_WIDTH}px;
+      width: ${EXPLICIT_TAG_WIDTH}px;
+      height: ${EXPLICIT_TAG_WIDTH}px;
+      border-radius: 2px;
+      margin-right: ${EXPLICIT_TAG_MARGIN}px;
+    }
+
+    .attribution,
+    .card-title,
+    .card-subtitle {
+      border: ${CARD_SPACING}px solid var(--black);
     }
 
     .now-playing-section {
@@ -378,8 +453,6 @@ const generateDataCardCellCSS = () => {
     }
 
     .cell-container {
-      color: inherit;
-
       width: ${CELL_WIDTH}px;
       height: ${CELL_HEIGHT}px;
 
@@ -392,9 +465,12 @@ const generateDataCardCellCSS = () => {
       background-color: var(--gray);
     }
 
+    .cell-container:hover
+    .explicit-tag {
+      color: var(--gray);
+    }
+
     .card-container,
-    .card-title,
-    .card-subtitle,
     .cell-container {
       padding: ${CARD_SPACING}px;
     }
@@ -410,10 +486,17 @@ const generateDataCardCellCSS = () => {
 
     .cover {}
 
-    .text-container {}
+    .text-container {
+      width: ${TEXT_CONTENT_WIDTH}px;
+    }
 
     .track-title {
       margin-bottom: 3px;
+    }
+
+    .track-subtitle-container {
+      display: flex;
+      align-items: center;
     }
 
     .track-subtitle {
@@ -461,7 +544,7 @@ const generateDataCardCellCSS = () => {
     .bars {
       position: absolute;
       height: 6px;
-      width: ${BARS_WIDTH}px;
+      width: ${TEXT_CONTENT_WIDTH}px;
       overflow: hidden;
       margin: -6px 0 0 0;
     }

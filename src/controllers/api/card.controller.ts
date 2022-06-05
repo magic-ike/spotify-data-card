@@ -17,7 +17,7 @@ const MIN_ITEM_COUNT = 1;
 const MAX_ITEM_COUNT = 10;
 const CARD_VIEW_PATH = 'api/card.view.tsx';
 
-// serves a data card
+// renders a data card
 export const card_get: RequestHandler = async (req, res) => {
   // set content-type header to svg
   res.setHeader('Content-Type', 'image/svg+xml');
@@ -26,7 +26,7 @@ export const card_get: RequestHandler = async (req, res) => {
   const cardReqBody = req.query as unknown as CardGetRequestQueryParams;
   const { user_id: userId } = cardReqBody;
   if (!userId) {
-    serveErrorCard(res, 'Missing required parameter: user_id');
+    renderErrorCard(res, 'Missing required parameter: user_id');
     return;
   }
 
@@ -35,7 +35,7 @@ export const card_get: RequestHandler = async (req, res) => {
   try {
     accessToken = await TokenMap.getLatestAccessToken(userId);
   } catch (error) {
-    serveErrorCard(res, getGenericErrorMessage(userId));
+    renderErrorCard(res, getGenericErrorMessage(userId));
     return;
   }
 
@@ -45,13 +45,13 @@ export const card_get: RequestHandler = async (req, res) => {
     const { display_name } = await User.getUserProfile(accessToken);
     userDisplayName = display_name;
   } catch (error) {
-    serveErrorCard(res, getGenericErrorMessage(userId));
+    renderErrorCard(res, getGenericErrorMessage(userId));
     return;
   }
 
   // get options from query params
   const {
-    custom_title: customTitle, // TODO: clean and trim
+    custom_title,
     hide_title,
     hide_playing,
     hide_recents,
@@ -61,6 +61,7 @@ export const card_get: RequestHandler = async (req, res) => {
     show_border,
     limit
   } = cardReqBody;
+  const customTitle = custom_title?.trim();
   const showTitle = !boolFromString(hide_title);
   const showNowPlaying = !boolFromString(hide_playing);
   const showRecentlyPlayed = !boolFromString(hide_recents);
@@ -75,14 +76,14 @@ export const card_get: RequestHandler = async (req, res) => {
     limit
   );
 
-  // serve error card if no data is visible
+  // render error card if no data is visible
   if (
     !showNowPlaying &&
     !showRecentlyPlayed &&
     !showTopTracks &&
     !showTopArtists
   ) {
-    serveErrorCard(
+    renderErrorCard(
       res,
       `${userDisplayName} doesn't want to show any of their Spotify data. 🤷🏾‍♂️`
     );
@@ -95,7 +96,7 @@ export const card_get: RequestHandler = async (req, res) => {
     try {
       nowPlaying = await User.getNowPlaying(accessToken, hideExplicit);
     } catch (error) {
-      serveErrorCard(res, getGenericErrorMessage(userId, userDisplayName));
+      renderErrorCard(res, getGenericErrorMessage(userId, userDisplayName));
       return;
     }
   }
@@ -110,7 +111,7 @@ export const card_get: RequestHandler = async (req, res) => {
         itemLimit
       );
     } catch (error) {
-      serveErrorCard(res, getGenericErrorMessage(userId, userDisplayName));
+      renderErrorCard(res, getGenericErrorMessage(userId, userDisplayName));
       return;
     }
   }
@@ -121,7 +122,7 @@ export const card_get: RequestHandler = async (req, res) => {
     try {
       topTracks = await User.getTopTracks(accessToken, hideExplicit, itemLimit);
     } catch (error) {
-      serveErrorCard(res, getGenericErrorMessage(userId, userDisplayName));
+      renderErrorCard(res, getGenericErrorMessage(userId, userDisplayName));
       return;
     }
   }
@@ -132,13 +133,13 @@ export const card_get: RequestHandler = async (req, res) => {
     try {
       topArtists = await User.getTopArtists(accessToken, itemLimit);
     } catch (error) {
-      serveErrorCard(res, getGenericErrorMessage(userId, userDisplayName));
+      renderErrorCard(res, getGenericErrorMessage(userId, userDisplayName));
       return;
     }
   }
 
-  // serve data card
-  serveCard(
+  // render data card
+  renderCard(
     res,
     userDisplayName,
     showTitle,
@@ -218,7 +219,7 @@ export const card_delete: RequestHandler = async (req, res) => {
 
 // helper functions
 
-const serveCard = async (
+const renderCard = async (
   res: Response,
   userDisplayName: string,
   showTitle: boolean,
@@ -276,7 +277,7 @@ const getImageDataMap = async (items: Item[]) => {
   return map;
 };
 
-const serveErrorCard = (res: Response, errorMessage: string) => {
+const renderErrorCard = (res: Response, errorMessage: string) => {
   res.render(CARD_VIEW_PATH, { errorMessage });
 };
 

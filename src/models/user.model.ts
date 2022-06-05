@@ -13,7 +13,7 @@ const NOW_PLAYING_ENDPOINT = `${PROFILE_ENDPOINT}/player/currently-playing`;
 const RECENTLY_PLAYED_ENDPOINT = `${PROFILE_ENDPOINT}/player/recently-played`;
 const TOP_TRACKS_ENDPOINT = `${PROFILE_ENDPOINT}/top/tracks`;
 const TOP_ARTISTS_ENDPOINT = `${PROFILE_ENDPOINT}/top/artists`;
-const DEFAULT_LIMIT = 50;
+const DEFAULT_LIMIT = 20;
 
 export default class User {
   static getUserProfile(accessToken: string): Promise<UserProfileResponseBody> {
