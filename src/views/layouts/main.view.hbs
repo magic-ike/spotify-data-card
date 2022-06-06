@@ -10,10 +10,52 @@
       src='https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js'
       defer
     ></script>
-    <script src='js/main.js' defer></script>
-    <title>Spotify Data Card</title>
+
+    {{#if (areEqual @exphbs.view 'home/index.view')}}
+      <script src='js/home.js' defer></script>
+      <title>{{title}} &ndash; Home</title>
+    {{/if}}
+
+    {{#if (areEqual @exphbs.view 'card/index.view')}}
+      <script src='js/card.js' defer></script>
+      <title>{{title}} &ndash; Card</title>
+    {{/if}}
+
   </head>
   <body>
-    {{{body}}}
+
+    <div class='container'>
+      <h1 class='title'>{{title}}</h1>
+      <p class='subtitle'>Share your music taste with the world.</p>
+      <div class='content'>
+
+        {{{body}}}
+
+      </div>
+    </div>
+
+    <footer class='footer'>
+      <a href='https://www.spotify.com' target='_blank' rel='noreferrer'>
+        <img
+          class='spotify-logo'
+          src='images/Spotify_Logo_RGB_White.png'
+          alt='Spotify Link'
+          height='30'
+        />
+        <img
+          class='spotify-icon'
+          src='images/Spotify_Icon_RGB_White.png'
+          alt='Spotify Link'
+          height='30'
+        />
+      </a>
+      <a
+        class='code-link'
+        href='https://github.com/magic-ike/spotify-data-card'
+        target='_blank'
+        rel='noreferrer'
+      >Made with 💚 and Node</a>
+    </footer>
+
   </body>
 </html>

@@ -1,41 +1,17 @@
-<section class='container'>
-  <h1 class='title'>Spotify Data Card</h1>
-  <p class='subtitle'>Share your music taste with the world.</p>
+<div class='column-view logged-out-view'>
+  <div class='gen-text'>Click the 'Generate Card' button below to generate your
+    Spotify data card which you can embed in your website, blog, markup code,
+    etc.</div>
+  <button class='btn gen-btn' onclick='generateCard()'>Generate Card</button>
+</div>
 
-  <div class='data-card-area'>
-    <div class='data-card-text'>Click the 'Generate Card' button below to
-      generate your Spotify data card which you can embed in your website, blog,
-      markup code, etc.</div>
-    <img class='data-card' alt='Data Card' />
-    {{! <object data='/api/card?user_id=12146253656' type='image/svg+xml'>
-      <img src='/api/card?user_id=12146253656' alt='Data Card' />
-    </object> }}
+<div class='column-view logged-in-view'>
+  <div class='btn-row'>
+    <button class='btn copy-btn' onclick='copyCardCode()'>Copy Code</button>
+    <button class='btn logout-btn' onclick='logOut()'>Log Out</button>
+    <button class='btn delete-btn' onclick='deleteCard()'>Delete Card</button>
   </div>
-
-  <button class='btn gen-copy-btn'></button>
-  <button class='btn logout-btn' onclick='logOut()'>Log Out</button>
-  <button class='btn delete-btn' onclick='deleteCard()'>Delete Card</button>
-</section>
-
-<footer class='footer'>
-  <a href='https://www.spotify.com' target='_blank' rel='noreferrer'>
-    <img
-      class='spotify-logo'
-      src='images/Spotify_Logo_RGB_White.png'
-      alt='Spotify Link'
-      height='30'
-    />
-    <img
-      class='spotify-icon'
-      src='images/Spotify_Icon_RGB_White.png'
-      alt='Spotify Link'
-      height='30'
-    />
+  <a class='data-card-link'>
+    <img class='data-card' alt='Data Card' />
   </a>
-  <a
-    class='code-link'
-    href='https://github.com/magic-ike/spotify-data-card'
-    target='_blank'
-    rel='noreferrer'
-  >Made with 💚 and Node</a>
-</footer>
+</div>

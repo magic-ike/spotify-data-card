@@ -1,3 +1,5 @@
+/* main layout */
+
 * {
   padding: 0;
   margin: 0;
@@ -18,7 +20,7 @@
   /* --spotify-bg-dark: #222326; */
   --std-spacing: 3rem;
   --content-width: 920px;
-  --btn-width: 12rem;
+  --btn-height: 3rem;
   --footer-height: 5rem;
 
   background-color: var(--spotify-black);
@@ -56,47 +58,12 @@ a:hover {
   margin-bottom: var(--std-spacing);
 }
 
-.data-card-area {
-  width: 100%;
+.content {
   max-width: var(--content-width);
-  margin-bottom: var(--std-spacing);
-}
-
-.data-card-text {
-  font-size: 1.2rem;
-}
-
-.data-card {
-  width: 100%;
-}
-
-.btn {
-  background-color: white;
-  font-weight: 700;
-  width: var(--btn-width);
-  max-width: 100%;
-  padding: 1rem 2rem;
-  border-radius: 500px;
-}
-
-.btn:hover {
-  cursor: pointer;
-  filter: brightness(0.95);
-  transform: scale(1.05);
-}
-
-.logout-btn,
-.delete-btn {
-  margin-top: 1rem;
-}
-
-.delete-btn {
-  color: red;
 }
 
 .footer {
   color: white;
-  width: 100%;
   height: var(--footer-height);
   padding: 0 var(--std-spacing);
   display: flex;
@@ -124,4 +91,63 @@ a:hover {
   .spotify-icon {
     display: block;
   }
+}
+
+/* common styles */
+
+.column-view {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--std-spacing);
+}
+
+.btn {
+  background-color: white;
+  font-weight: 700;
+  height: var(--btn-height);
+  padding: 0 2rem;
+  border: 3px solid transparent;
+  border-radius: calc(var(--btn-height) / 2);
+  outline: 3px solid transparent;
+}
+
+.btn:hover {
+  cursor: pointer;
+  filter: brightness(0.95);
+  transform: scale(1.05);
+}
+
+.btn:active {
+  border-color: var(--spotify-bg);
+  outline-color: white;
+}
+
+.btn-row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+/* home page */
+
+.delete-btn {
+  color: red;
+}
+
+.gen-text {
+  font-size: 1.2rem;
+  max-width: 500px;
+}
+
+.data-card {
+  width: 100%;
+}
+
+/* card page */
+
+.interactive-data-card {
+  width: 100%;
 }

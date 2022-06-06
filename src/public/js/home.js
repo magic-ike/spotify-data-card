@@ -15,38 +15,30 @@ const renderPage = () => {
   const userId = localStorage.getItem(USER_ID);
   const refreshToken = localStorage.getItem(REFRESH_TOKEN);
   const loggedIn = userId && refreshToken;
-  // temp
-  const imageUrl = 'http://localhost:8080/api/card?user_id=12146253656';
 
-  const dataCardText = $('.data-card-text');
+  const dataCardLink = $('.data-card-link');
   const dataCard = $('.data-card');
-  const logoutBtn = $('.logout-btn');
-  const deleteBtn = $('.delete-btn');
+  const loggedOutView = $('.logged-out-view');
+  const loggedInView = $('.logged-in-view');
 
   if (!loggedIn) {
-    dataCardText.fadeIn();
-    dataCard.removeAttr('src').hide();
-    setGenCopyBtnText(loggedIn).off('click').click(generateCard);
-    logoutBtn.hide();
-    deleteBtn.hide();
+    dataCardLink.removeAttr('href');
+    dataCard.removeAttr('src');
+
+    loggedOutView.fadeIn();
+    loggedInView.hide();
   } else {
-    dataCardText.hide();
-    dataCard.attr('src', imageUrl).fadeIn();
-    setGenCopyBtnText(loggedIn).off('click').click(copyCardCode);
-    logoutBtn.fadeIn();
-    deleteBtn.fadeIn();
+    const cardPageUrl = `/card?user_id=${userId}`;
+    const imageUrl = `/api${cardPageUrl}`;
+    dataCardLink.attr('href', cardPageUrl);
+    dataCard.attr('src', imageUrl);
+
+    loggedOutView.hide();
+    loggedInView.fadeIn();
   }
 
   const body = $('body');
   if (body.is(':hidden')) body.show();
-};
-
-const setGenCopyBtnText = (loggedIn) => {
-  const genCopyBtn = $('.gen-copy-btn');
-  const oldText = genCopyBtn.html();
-  const newText = !loggedIn ? 'Generate Card' : 'Copy Code';
-  if (!oldText || oldText === newText) return genCopyBtn.html(newText);
-  else return genCopyBtn.hide().html(newText).fadeIn();
 };
 
 const generateCard = () => {
@@ -54,7 +46,7 @@ const generateCard = () => {
 };
 
 const copyCardCode = () => {
-  alert('Code copied to clipboard!');
+  alert('Code copied to clipboard.');
   // TODO: copy code
 };
 

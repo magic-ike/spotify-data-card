@@ -12,7 +12,17 @@ import apiRouter from './routes/api/index.route';
 const app = express();
 
 // view engine: handlebars
-app.engine('.hbs', engine({ extname: '.hbs', defaultLayout: 'main.view.hbs' }));
+app.engine(
+  '.hbs',
+  engine({
+    extname: '.hbs',
+    defaultLayout: 'main.view.hbs',
+    helpers: {
+      title: 'Spotify Data Card',
+      areEqual: (a: any, b: any) => a === b
+    }
+  })
+);
 app.set('view engine', '.hbs');
 app.set('views', path.join(__dirname, 'views'));
 

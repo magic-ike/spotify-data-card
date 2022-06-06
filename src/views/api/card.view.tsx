@@ -52,7 +52,7 @@ export default function DataCard({
 }: DataCardProps) {
   // calculate card size
   let cardWidth = CARD_SPACING * 2;
-  let cardHeight = ATTRIBUTION_HEIGHT + CARD_SPACING * 3;
+  let cardHeight = CARD_SPACING * 2 + ATTRIBUTION_HEIGHT;
   if (errorMessage) {
     cardWidth += ERROR_MESSAGE_WIDTH;
     cardHeight += CARD_TITLE_HEIGHT;
@@ -138,55 +138,75 @@ export default function DataCard({
                       <div className="card-subtitle">
                         Recently Played Tracks
                       </div>
-                      {recentlyPlayed.map((track, i) => (
+                      {recentlyPlayed.length ? (
+                        recentlyPlayed.map((track, i) => (
+                          <DataCardCell
+                            item={track}
+                            imageDataMap={imageDataMap}
+                            rank={i + 1}
+                            key={`recent-${i}`}
+                          />
+                        ))
+                      ) : (
                         <DataCardCell
-                          item={track}
+                          item={null}
                           imageDataMap={imageDataMap}
-                          rank={i + 1}
-                          key={`recent-${i}`}
+                          rank={1}
                         />
-                      ))}
+                      )}
                     </section>
                   )}
 
                   {showTopTracks && (
                     <section>
                       <div className="card-subtitle">Top Tracks</div>
-                      {topTracks.map((track, i) => (
+                      {topTracks.length ? (
+                        topTracks.map((track, i) => (
+                          <DataCardCell
+                            item={track}
+                            imageDataMap={imageDataMap}
+                            rank={i + 1}
+                            key={`top-track-${i}`}
+                          />
+                        ))
+                      ) : (
                         <DataCardCell
-                          item={track}
+                          item={null}
                           imageDataMap={imageDataMap}
-                          rank={i + 1}
-                          key={`top-track-${i}`}
+                          rank={1}
                         />
-                      ))}
+                      )}
                     </section>
                   )}
 
                   {showTopArtists && (
                     <section>
                       <div className="card-subtitle">Top Artists</div>
-                      {topArtists.map((artist, i) => (
+                      {topArtists.length ? (
+                        topArtists.map((artist, i) => (
+                          <DataCardCell
+                            item={artist}
+                            imageDataMap={imageDataMap}
+                            rank={i + 1}
+                            key={`top-artist-${i}`}
+                          />
+                        ))
+                      ) : (
                         <DataCardCell
-                          item={artist}
+                          item={null}
                           imageDataMap={imageDataMap}
-                          rank={i + 1}
-                          key={`top-artist-${i}`}
+                          rank={1}
                         />
-                      ))}
+                      )}
                     </section>
                   )}
                 </div>
               </>
             )}
             <div className="attribution">
-              <a
-                href="https://www.spotify.com"
-                target="_blank"
-                rel="noreferrer"
-                className="spotify-link"
-              >
+              <SafeLink className="spotify-link" href="https://www.spotify.com">
                 <img
+                  className="spotify-logo"
                   src={
                     'data:image/png;base64,' +
                     getBase64DataFromImagePath(
@@ -194,12 +214,9 @@ export default function DataCard({
                     )
                   }
                   alt="spotify.com"
-                  className="spotify-logo"
                 />
-              </a>
-              <a href="/" className="short-url">
-                {SHORT_URL}
-              </a>
+              </SafeLink>
+              <div className="short-url">{SHORT_URL}</div>
             </div>
           </div>
         </div>
@@ -215,8 +232,14 @@ interface DataCardCellProps {
 }
 
 const DataCardCell = ({ item, imageDataMap, rank }: DataCardCellProps) => {
-  const CellContainer = item ? 'a' : 'div';
-  const cellTitle = item ? (isTrack(item) ? item.title : item.name) : 'Nothing';
+  const CellContainer = item ? SafeLink : 'div';
+  const cellTitle = item
+    ? isTrack(item)
+      ? item.title
+      : item.name
+    : rank
+    ? 'None'
+    : 'Nothing';
   const cellSubtitle = isTrack(item)
     ? `${item.artist} • ${item.albumTitle}`
     : '';
@@ -228,25 +251,20 @@ const DataCardCell = ({ item, imageDataMap, rank }: DataCardCellProps) => {
   );
 
   return (
-    <CellContainer
-      href={item?.url}
-      target={item ? '_blank' : undefined}
-      rel={item ? 'noreferrer' : undefined}
-      className="cell-container"
-    >
+    <CellContainer className="cell-container" href={item?.url}>
       {item ? (
         <>
           <div className="rank big-text">
             {isTopItem(item, rank) ? rank : '🔊'}
           </div>
           <img
+            className="cover"
             src={
               'data:image/jpeg;base64,' +
               imageDataMap[isTrack(item) ? item.albumImageUrl : item.imageUrl]
             }
             width={CONTENT_HEIGHT}
             height={CONTENT_HEIGHT}
-            className="cover"
           />
           <div className="text-container">
             <div
@@ -305,6 +323,22 @@ const DataCardCell = ({ item, imageDataMap, rank }: DataCardCellProps) => {
         <div className="not-playing big-text">{cellTitle}</div>
       )}
     </CellContainer>
+  );
+};
+
+const SafeLink = ({
+  className,
+  href,
+  children
+}: {
+  className?: string;
+  href?: string;
+  children?: React.ReactNode;
+}) => {
+  return (
+    <a className={className} href={href} target="_blank" rel="noreferrer">
+      {children}
+    </a>
   );
 };
 
@@ -429,8 +463,8 @@ const generateDataCardCellCSS = () => {
       font-size: 10px;
       text-align: center;
       line-height: ${EXPLICIT_TAG_WIDTH}px;
-      width: ${EXPLICIT_TAG_WIDTH}px;
       height: ${EXPLICIT_TAG_WIDTH}px;
+      width: ${EXPLICIT_TAG_WIDTH}px;
       border-radius: 2px;
       margin-right: ${EXPLICIT_TAG_MARGIN}px;
     }
@@ -453,8 +487,8 @@ const generateDataCardCellCSS = () => {
     }
 
     .cell-container {
-      width: ${CELL_WIDTH}px;
       height: ${CELL_HEIGHT}px;
+      width: ${CELL_WIDTH}px;
 
       display: flex;
       align-items: center;
@@ -550,11 +584,11 @@ const generateDataCardCellCSS = () => {
     }
 
     .bar {
-      background: var(--green);
-      bottom: 1px;
+      background-color: var(--green);
       height: 3px;
-      position: absolute;
       width: 3px;
+      position: absolute;
+      bottom: 1px;
       animation: sound 0ms -800ms linear infinite alternate;
     }
 
