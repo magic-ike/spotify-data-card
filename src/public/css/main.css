@@ -59,6 +59,7 @@ a:hover {
 }
 
 .content {
+  width: 100%;
   max-width: var(--content-width);
 }
 
@@ -107,9 +108,7 @@ a:hover {
   font-weight: 700;
   height: var(--btn-height);
   padding: 0 2rem;
-  border: 3px solid transparent;
   border-radius: calc(var(--btn-height) / 2);
-  outline: 3px solid transparent;
 }
 
 .btn:hover {
@@ -119,8 +118,7 @@ a:hover {
 }
 
 .btn:active {
-  border-color: var(--spotify-bg);
-  outline-color: white;
+  box-shadow: 0 0 0 3px var(--spotify-bg), 0 0 0 6px white;
 }
 
 .btn-row {
@@ -148,6 +146,18 @@ a:hover {
 
 /* card page */
 
-.interactive-data-card {
-  width: 100%;
+.data-card-container {
+  width: calc(100% + var(--std-spacing) * 2);
+  padding: 0 var(--std-spacing);
+  margin: 0 calc(var(--std-spacing) * -1);
+  overflow-x: auto;
+}
+
+.data-card-container::-webkit-scrollbar {
+  display: none;
+}
+
+.interactive-data-card,
+.data-card-container .data-card {
+  width: var(--content-width);
 }

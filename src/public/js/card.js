@@ -19,6 +19,11 @@ copyCardPageLink = async () => {
   alert('Link copied to clipboard.');
 };
 
+saveCardSnapshot = () => {
+  // TODO: implement
+  alert('Snapshot saved.');
+};
+
 goToHomePage = () => {
   window.location.href = '/';
 };
