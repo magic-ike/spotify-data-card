@@ -1,38 +1,27 @@
 <svg
   width="100"
-  height="100"
+  height="50"
   xmlns="http://www.w3.org/2000/svg"
   aria-hidden="true"
 >
   <style>
     .container {
       width: 100px;
-      height: 100px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
+      height: 50px;
     }
 
     .bars {
-      width: 100px;
-      min-width: 100px;
-      height: 50px;
-      margin: 0 auto;
-      overflow: hidden;
-      z-index: 2;
+      width: 100%;
+      height: 100%;
       display: flex;
-      justify-content: center;
       align-items: flex-end;
-      position: relative;
-      left: 0;
-      right: 0;
+      gap: 5px;
     }
 
     .bar {
       background-color: white;
       width: 10px;
       height: 5px;
-      margin: 0 2px;
       animation-name: sound;
       animation-duration: 400ms;
       animation-timing-function: linear;
@@ -60,6 +49,8 @@
           <div class="bar" style="animation-delay: 475ms"></div>
           <div class="bar" style="animation-delay: 25ms"></div>
           <div class="bar" style="animation-delay: 190ms"></div>
+          <div class="bar" style="animation-delay: 175ms"></div>
+          <div class="bar" style="animation-delay: 525ms"></div>
         </div>
       </div>
     </div>

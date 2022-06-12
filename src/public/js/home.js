@@ -45,6 +45,8 @@ const renderPage = () => {
 };
 
 const generateCard = () => {
+  $('.gen-btn').hide();
+  $('.gen-btn-group > .btn-loading-img').show();
   window.location.href = '/auth/login';
 };
 
@@ -60,6 +62,9 @@ const logOut = () => {
 
 const deleteCard = async () => {
   if (!confirm('Are you sure you want to delete your data card?')) return;
+
+  $('.delete-btn').hide();
+  $('.delete-btn-group > .btn-loading-img').show();
 
   const userId = localStorage.getItem(USER_ID);
   const refreshToken = localStorage.getItem(REFRESH_TOKEN);

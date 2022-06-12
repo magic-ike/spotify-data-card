@@ -94,6 +94,17 @@ a:hover {
   }
 }
 
+/* partials */
+
+.loading-img {
+  height: 100px;
+}
+
+.btn-loading-img {
+  height: var(--btn-height);
+  display: none;
+}
+
 /* common styles */
 
 .column-view {
@@ -127,15 +138,6 @@ a:hover {
   align-items: center;
   flex-wrap: wrap;
   gap: 1rem;
-}
-
-.loading-img-container {
-  height: 500px;
-}
-
-.loading-img {
-  width: 100px;
-  height: 100px;
 }
 
 .data-card {
