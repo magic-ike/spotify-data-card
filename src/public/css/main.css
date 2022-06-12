@@ -19,7 +19,7 @@
   --spotify-bg: #1ae68c;
   /* --spotify-bg-dark: #222326; */
   --std-spacing: 3rem;
-  --content-width: 920px;
+  --content-width: 1000px;
   --btn-height: 3rem;
   --footer-height: 5rem;
 
@@ -129,6 +129,19 @@ a:hover {
   gap: 1rem;
 }
 
+.loading-img-container {
+  height: 500px;
+}
+
+.loading-img {
+  width: 100px;
+  height: 100px;
+}
+
+.data-card {
+  width: 100%;
+}
+
 /* home page */
 
 .delete-btn {
@@ -140,7 +153,7 @@ a:hover {
   max-width: 500px;
 }
 
-.data-card {
+.data-card-link {
   width: 100%;
 }
 
@@ -155,9 +168,4 @@ a:hover {
 
 .data-card-container::-webkit-scrollbar {
   display: none;
-}
-
-.interactive-data-card,
-.data-card-container .data-card {
-  width: var(--content-width);
 }

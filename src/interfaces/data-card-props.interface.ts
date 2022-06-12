@@ -6,17 +6,17 @@ export default interface DataCardProps {
   userDisplayName: string;
   customTitle?: string;
   showTitle: boolean;
+  hideExplicit: boolean;
+  showNowPlaying: boolean;
   nowPlaying: Track | null;
+  showRecentlyPlayed: boolean;
   recentlyPlayed: Track[];
+  showTopTracks: boolean;
   topTracks: Track[];
+  showTopArtists: boolean;
   topArtists: Artist[];
   imageDataMap: StringMap;
-  showNowPlaying: boolean;
-  showRecentlyPlayed: boolean;
-  showTopTracks: boolean;
-  showTopArtists: boolean;
-  hideExplicit: boolean;
-  showBorder: boolean;
   itemLimit: number;
+  showBorder: boolean;
   errorMessage?: string;
 }

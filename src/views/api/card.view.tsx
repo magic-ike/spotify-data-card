@@ -8,6 +8,7 @@ import { getBase64DataFromImagePath } from '../../utils/image.util';
 import { SHORT_URL } from '../../utils/config.util';
 
 // card dimensions
+const BORDER_WIDTH = 3;
 const CARD_SPACING = 10;
 const CARD_TITLE_HEIGHT = 50;
 const CARD_SUBTITLE_HEIGHT = 45;
@@ -20,7 +21,10 @@ const RANK_WIDTH = 15;
 const CONTENT_HEIGHT = CELL_HEIGHT - CARD_SPACING * 2;
 const TEXT_CONTENT_WIDTH =
   CELL_WIDTH - RANK_WIDTH - CONTENT_HEIGHT - CARD_SPACING * 4;
-const BAR_COUNT = Math.ceil(TEXT_CONTENT_WIDTH / 4);
+const BAR_WIDTH = 3;
+const BAR_MARGIN = 1;
+const BAR_SPACE = BAR_WIDTH + BAR_MARGIN;
+const BAR_COUNT = Math.ceil(TEXT_CONTENT_WIDTH / BAR_SPACE);
 const EXPLICIT_TAG_WIDTH = 16;
 const EXPLICIT_TAG_MARGIN = 8;
 const EXPLICIT_TAG_SPACE = EXPLICIT_TAG_WIDTH + EXPLICIT_TAG_MARGIN;
@@ -36,23 +40,23 @@ export default function DataCard({
   userDisplayName,
   customTitle,
   showTitle,
+  hideExplicit,
+  showNowPlaying,
   nowPlaying,
+  showRecentlyPlayed,
   recentlyPlayed,
+  showTopTracks,
   topTracks,
+  showTopArtists,
   topArtists,
   imageDataMap,
-  showNowPlaying,
-  showRecentlyPlayed,
-  showTopTracks,
-  showTopArtists,
-  hideExplicit,
-  showBorder,
   itemLimit,
+  showBorder,
   errorMessage
 }: DataCardProps) {
   // calculate card size
-  let cardWidth = CARD_SPACING * 2;
-  let cardHeight = CARD_SPACING * 2 + ATTRIBUTION_HEIGHT;
+  let cardWidth = 0;
+  let cardHeight = ATTRIBUTION_HEIGHT;
   if (errorMessage) {
     cardWidth += ERROR_MESSAGE_WIDTH;
     cardHeight += CARD_TITLE_HEIGHT;
@@ -72,10 +76,16 @@ export default function DataCard({
       cardHeight += CARD_SUBTITLE_HEIGHT + CELL_HEIGHT * itemLimit;
   }
 
+  const [finalCardWidth, finalCardHeight] = getFinalCardDimensions(
+    cardWidth,
+    cardHeight,
+    showBorder
+  );
+
   return (
     <svg
-      width={cardWidth}
-      height={cardHeight}
+      width={finalCardWidth}
+      height={finalCardHeight}
       xmlns="http://www.w3.org/2000/svg"
       role="img"
       aria-labelledby="title"
@@ -88,7 +98,9 @@ export default function DataCard({
         >
           <div
             className="card-container"
-            style={{ border: showBorder ? '3px solid white' : undefined }}
+            style={{
+              border: showBorder ? `${BORDER_WIDTH}px solid white` : undefined
+            }}
           >
             {errorMessage ? (
               <div className="card-title error-message scrolling-container">
@@ -352,6 +364,17 @@ const isTopItem = (item: Item, rank?: number) => {
   return item && typeof rank === 'number';
 };
 
+const getFinalCardDimensions = (
+  width: number,
+  height: number,
+  showBorder: boolean
+) => {
+  const paddingSpace = CARD_SPACING * 2;
+  const borderSpace = showBorder ? BORDER_WIDTH * 2 : 0;
+  const totalExtraSpace = paddingSpace + borderSpace;
+  return [width + totalExtraSpace, height + totalExtraSpace];
+};
+
 const textOverflows = (
   text: string,
   size: number,
@@ -380,7 +403,7 @@ const generateBarCSS = () => {
   for (let i = 1; i <= BAR_COUNT; i++) {
     const anim = randomIntFromInterval(350, 500);
     barCSS += `.bar:nth-child(${i}) { left: ${left}px; animation-duration: ${anim}ms; }`;
-    left += 4;
+    left += BAR_SPACE;
   }
   return barCSS;
 };
@@ -463,8 +486,8 @@ const generateDataCardCellCSS = () => {
       font-size: 10px;
       text-align: center;
       line-height: ${EXPLICIT_TAG_WIDTH}px;
-      height: ${EXPLICIT_TAG_WIDTH}px;
       width: ${EXPLICIT_TAG_WIDTH}px;
+      height: ${EXPLICIT_TAG_WIDTH}px;
       border-radius: 2px;
       margin-right: ${EXPLICIT_TAG_MARGIN}px;
     }
@@ -487,9 +510,8 @@ const generateDataCardCellCSS = () => {
     }
 
     .cell-container {
-      height: ${CELL_HEIGHT}px;
       width: ${CELL_WIDTH}px;
-
+      height: ${CELL_HEIGHT}px;
       display: flex;
       align-items: center;
       gap: ${CARD_SPACING}px;
@@ -577,16 +599,16 @@ const generateDataCardCellCSS = () => {
 
     .bars {
       position: absolute;
-      height: 6px;
       width: ${TEXT_CONTENT_WIDTH}px;
+      height: 6px;
       overflow: hidden;
       margin: -6px 0 0 0;
     }
 
     .bar {
       background-color: var(--green);
+      width: ${BAR_WIDTH}px;
       height: 3px;
-      width: 3px;
       position: absolute;
       bottom: 1px;
       animation: sound 0ms -800ms linear infinite alternate;

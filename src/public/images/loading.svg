@@ -1,0 +1,67 @@
+<svg
+  width="100"
+  height="100"
+  xmlns="http://www.w3.org/2000/svg"
+  aria-hidden="true"
+>
+  <style>
+    .container {
+      width: 100px;
+      height: 100px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .bars {
+      width: 100px;
+      min-width: 100px;
+      height: 50px;
+      margin: 0 auto;
+      overflow: hidden;
+      z-index: 2;
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
+      position: relative;
+      left: 0;
+      right: 0;
+    }
+
+    .bar {
+      background-color: white;
+      width: 10px;
+      height: 5px;
+      margin: 0 2px;
+      animation-name: sound;
+      animation-duration: 400ms;
+      animation-timing-function: linear;
+      animation-iteration-count: infinite;
+      animation-direction: alternate;
+      animation-play-state: running;
+    }
+
+    @keyframes sound {
+      from {
+        height: 5px;
+      }
+
+      to {
+        height: 100%;
+      }
+    }
+  </style>
+  <foreignObject width="100%" height="100%">
+    <div xmlns="http://www.w3.org/1999/xhtml">
+      <div class="container">
+        <div class="bars">
+          <div class="bar" style="animation-delay: 250ms"></div>
+          <div class="bar" style="animation-delay: 715ms"></div>
+          <div class="bar" style="animation-delay: 475ms"></div>
+          <div class="bar" style="animation-delay: 25ms"></div>
+          <div class="bar" style="animation-delay: 190ms"></div>
+        </div>
+      </div>
+    </div>
+  </foreignObject>
+</svg>

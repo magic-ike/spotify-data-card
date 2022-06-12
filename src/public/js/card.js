@@ -3,10 +3,13 @@ $(() => {
 });
 
 const renderPage = () => {
-  const imageUrl = `/api/card${window.location.search}`;
+  const loadingImgContainer = $('.loading-img-container');
   const iDataCard = $('.interactive-data-card');
   const dataCard = $('.data-card');
 
+  dataCard.one('load', () => loadingImgContainer.hide());
+
+  const imageUrl = `/api/card${window.location.search}`;
   iDataCard.attr('data', imageUrl);
   dataCard.attr('src', imageUrl);
 

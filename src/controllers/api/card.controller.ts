@@ -24,9 +24,10 @@ export const card_get: RequestHandler = async (req, res) => {
 
   // validate user id query param
   const cardReqBody = req.query as unknown as CardGetRequestQueryParams;
-  const { user_id: userId } = cardReqBody;
+  const { user_id: userId, show_border } = cardReqBody;
+  const showBorder = boolFromString(show_border);
   if (!userId) {
-    renderErrorCard(res, 'Missing required parameter: user_id');
+    renderErrorCard(res, 'Missing required parameter: user_id', showBorder);
     return;
   }
 
@@ -35,7 +36,7 @@ export const card_get: RequestHandler = async (req, res) => {
   try {
     accessToken = await TokenMap.getLatestAccessToken(userId);
   } catch (error) {
-    renderErrorCard(res, getGenericErrorMessage(userId));
+    renderErrorCard(res, getGenericErrorMessage(userId), showBorder);
     return;
   }
 
@@ -45,7 +46,7 @@ export const card_get: RequestHandler = async (req, res) => {
     const { display_name } = await User.getUserProfile(accessToken);
     userDisplayName = display_name;
   } catch (error) {
-    renderErrorCard(res, getGenericErrorMessage(userId));
+    renderErrorCard(res, getGenericErrorMessage(userId), showBorder);
     return;
   }
 
@@ -53,22 +54,20 @@ export const card_get: RequestHandler = async (req, res) => {
   const {
     custom_title,
     hide_title,
+    hide_explicit,
     hide_playing,
     hide_recents,
     hide_top_tracks,
     hide_top_artists,
-    hide_explicit,
-    show_border,
     limit
   } = cardReqBody;
   const customTitle = custom_title?.trim();
   const showTitle = !boolFromString(hide_title);
+  const hideExplicit = boolFromString(hide_explicit);
   const showNowPlaying = !boolFromString(hide_playing);
   const showRecentlyPlayed = !boolFromString(hide_recents);
   const showTopTracks = !boolFromString(hide_top_tracks);
   const showTopArtists = !boolFromString(hide_top_artists);
-  const hideExplicit = boolFromString(hide_explicit);
-  const showBorder = boolFromString(show_border);
   const itemLimit = boundedIntFromString(
     MIN_ITEM_COUNT,
     MAX_ITEM_COUNT,
@@ -85,7 +84,8 @@ export const card_get: RequestHandler = async (req, res) => {
   ) {
     renderErrorCard(
       res,
-      `${userDisplayName} doesn't want to show any of their Spotify data. 🤷🏾‍♂️`
+      `${userDisplayName} doesn't want to show any of their Spotify data. 🤷🏾‍♂️`,
+      showBorder
     );
     return;
   }
@@ -96,7 +96,11 @@ export const card_get: RequestHandler = async (req, res) => {
     try {
       nowPlaying = await User.getNowPlaying(accessToken, hideExplicit);
     } catch (error) {
-      renderErrorCard(res, getGenericErrorMessage(userId, userDisplayName));
+      renderErrorCard(
+        res,
+        getGenericErrorMessage(userId, userDisplayName),
+        showBorder
+      );
       return;
     }
   }
@@ -111,7 +115,11 @@ export const card_get: RequestHandler = async (req, res) => {
         itemLimit
       );
     } catch (error) {
-      renderErrorCard(res, getGenericErrorMessage(userId, userDisplayName));
+      renderErrorCard(
+        res,
+        getGenericErrorMessage(userId, userDisplayName),
+        showBorder
+      );
       return;
     }
   }
@@ -122,7 +130,11 @@ export const card_get: RequestHandler = async (req, res) => {
     try {
       topTracks = await User.getTopTracks(accessToken, hideExplicit, itemLimit);
     } catch (error) {
-      renderErrorCard(res, getGenericErrorMessage(userId, userDisplayName));
+      renderErrorCard(
+        res,
+        getGenericErrorMessage(userId, userDisplayName),
+        showBorder
+      );
       return;
     }
   }
@@ -133,7 +145,11 @@ export const card_get: RequestHandler = async (req, res) => {
     try {
       topArtists = await User.getTopArtists(accessToken, itemLimit);
     } catch (error) {
-      renderErrorCard(res, getGenericErrorMessage(userId, userDisplayName));
+      renderErrorCard(
+        res,
+        getGenericErrorMessage(userId, userDisplayName),
+        showBorder
+      );
       return;
     }
   }
@@ -143,17 +159,17 @@ export const card_get: RequestHandler = async (req, res) => {
     res,
     userDisplayName,
     showTitle,
-    nowPlaying,
-    recentlyPlayed,
-    topTracks,
-    topArtists,
-    showNowPlaying,
-    showRecentlyPlayed,
-    showTopTracks,
-    showTopArtists,
     hideExplicit,
-    showBorder,
+    showNowPlaying,
+    nowPlaying,
+    showRecentlyPlayed,
+    recentlyPlayed,
+    showTopTracks,
+    topTracks,
+    showTopArtists,
+    topArtists,
     itemLimit,
+    showBorder,
     customTitle
   );
 };
@@ -223,17 +239,17 @@ const renderCard = async (
   res: Response,
   userDisplayName: string,
   showTitle: boolean,
-  nowPlaying: Track | null,
-  recentlyPlayed: Track[],
-  topTracks: Track[],
-  topArtists: Artist[],
-  showNowPlaying: boolean,
-  showRecentlyPlayed: boolean,
-  showTopTracks: boolean,
-  showTopArtists: boolean,
   hideExplicit: boolean,
-  showBorder: boolean,
+  showNowPlaying: boolean,
+  nowPlaying: Track | null,
+  showRecentlyPlayed: boolean,
+  recentlyPlayed: Track[],
+  showTopTracks: boolean,
+  topTracks: Track[],
+  showTopArtists: boolean,
+  topArtists: Artist[],
   itemLimit: number,
+  showBorder: boolean,
   customTitle?: string
 ) => {
   // TODO: add cache-control header? (good responses only)
@@ -248,18 +264,18 @@ const renderCard = async (
     userDisplayName,
     customTitle,
     showTitle,
+    hideExplicit,
+    showNowPlaying,
     nowPlaying,
+    showRecentlyPlayed,
     recentlyPlayed,
+    showTopTracks,
     topTracks,
+    showTopArtists,
     topArtists,
     imageDataMap,
-    showNowPlaying,
-    showRecentlyPlayed,
-    showTopTracks,
-    showTopArtists,
-    hideExplicit,
-    showBorder,
-    itemLimit
+    itemLimit,
+    showBorder
   };
   res.render(CARD_VIEW_PATH, dataCardProps);
 };
@@ -277,8 +293,12 @@ const getImageDataMap = async (items: Item[]) => {
   return map;
 };
 
-const renderErrorCard = (res: Response, errorMessage: string) => {
-  res.render(CARD_VIEW_PATH, { errorMessage });
+const renderErrorCard = (
+  res: Response,
+  errorMessage: string,
+  showBorder: boolean
+) => {
+  res.render(CARD_VIEW_PATH, { showBorder, errorMessage });
 };
 
 const getGenericErrorMessage = (userId: string, userDisplayName?: string) => {

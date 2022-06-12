@@ -16,10 +16,13 @@ const renderPage = () => {
   const refreshToken = localStorage.getItem(REFRESH_TOKEN);
   const loggedIn = userId && refreshToken;
 
+  const loadingImgContainer = $('.loading-img-container');
   const dataCardLink = $('.data-card-link');
   const dataCard = $('.data-card');
   const loggedOutView = $('.logged-out-view');
   const loggedInView = $('.logged-in-view');
+
+  dataCard.one('load', () => loadingImgContainer.hide());
 
   if (!loggedIn) {
     dataCardLink.removeAttr('href');
