@@ -9,7 +9,7 @@ $(() => {
   }, DEFAULT_DELAY_TIME);
 });
 
-// page rendering functions
+// rendering
 
 const renderPage = () => {
   const userId = localStorage.getItem(USER_ID);
@@ -31,8 +31,7 @@ const renderPage = () => {
     loggedOutView.fadeIn();
     loggedInView.hide();
   } else {
-    const cardPageUrl = `/card?user_id=${userId}`;
-    const imageUrl = `/api${cardPageUrl}`;
+    const [cardPageUrl, imageUrl] = getRelativeUrls(userId);
     dataCardLink.attr('href', cardPageUrl);
     dataCard.attr('src', imageUrl);
 
@@ -44,15 +43,54 @@ const renderPage = () => {
   if (body.is(':hidden')) body.show();
 };
 
+// hash params
+
+const checkForHashParams = () => {
+  const { error, user_id, refresh_token } = getHashParams();
+  if (error) {
+    alert(`Failed to generate data card. Error: ${error}`);
+  } else if (user_id && refresh_token) {
+    localStorage.setItem(USER_ID, user_id);
+    localStorage.setItem(REFRESH_TOKEN, refresh_token);
+    alert('Data card generated!');
+  } else return;
+  history.replaceState('', document.title, window.location.pathname);
+  renderPage();
+};
+
+const getHashParams = () => {
+  const params = {};
+  const regex = /([^&;=]+)=?([^&;]*)/g;
+  const queryString = window.location.hash.slice(1);
+  let execArray;
+  while ((execArray = regex.exec(queryString)))
+    params[execArray[1]] = decodeURIComponent(execArray[2]);
+  return params;
+};
+
+// buttons
+
 const generateCard = () => {
   $('.gen-btn').hide();
   $('.gen-btn-group > .btn-loading-img').show();
   window.location.href = '/auth/login';
 };
 
-const copyCardCode = () => {
-  alert('Code copied to clipboard.');
-  // TODO: copy code
+const copyCardCode = async () => {
+  const userId = localStorage.getItem(USER_ID);
+  const [cardPageUrl, imageUrl] = getFullUrls(userId);
+  const code = `<a href="${cardPageUrl}">
+  <img src="${imageUrl}" />
+</a>`;
+  const confirmation = `Code:
+
+${code}
+
+Click 'OK' to copy.`;
+  if (confirm(confirmation)) {
+    await navigator.clipboard.writeText(code);
+    alert('Code copied to clipboard!');
+  }
 };
 
 const logOut = () => {
@@ -91,27 +129,16 @@ const deleteCard = async () => {
   }, DEFAULT_DELAY_TIME);
 };
 
-// hash param functions
+// helpers
 
-const checkForHashParams = () => {
-  const { error, user_id, refresh_token } = getHashParams();
-  if (error) {
-    alert(`Failed to generate data card. Error: ${error}`);
-  } else if (user_id && refresh_token) {
-    localStorage.setItem(USER_ID, user_id);
-    localStorage.setItem(REFRESH_TOKEN, refresh_token);
-    alert('Data card generated!');
-  }
-  history.replaceState('', document.title, window.location.pathname);
-  renderPage();
+const getRelativeUrls = (userId) => {
+  const cardPageUrl = `/card?user_id=${userId}`;
+  const imageUrl = `/api${cardPageUrl}`;
+  return [cardPageUrl, imageUrl];
 };
 
-const getHashParams = () => {
-  const params = {};
-  const regex = /([^&;=]+)=?([^&;]*)/g;
-  const queryString = window.location.hash.slice(1);
-  let execArray;
-  while ((execArray = regex.exec(queryString)))
-    params[execArray[1]] = decodeURIComponent(execArray[2]);
-  return params;
+const getFullUrls = (userId) => {
+  return getRelativeUrls(userId).map(
+    (url) => `${window.location.origin}${url}`
+  );
 };
