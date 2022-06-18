@@ -28,12 +28,14 @@ copyCardPageLink = async () => {
 
 saveCardSnapshot = () => {
   const link = document.createElement('a');
-  link.href = getImageUrl();
-  link.download = `spotify_data_${getDateString()}.svg`;
+  const imageUrlObject = new URL(getImageUrl());
+  imageUrlObject.searchParams.set('show_date', '1');
+  link.href = imageUrlObject.href;
+  link.download = `Spotify Data on ${getDateString()}.svg`;
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
-  alert('Download starting...');
+  alert('Download started...');
 };
 
 goToHomePage = () => {
@@ -43,9 +45,9 @@ goToHomePage = () => {
 // helpers
 
 const getImageUrl = () => {
-  return `/api${window.location.pathname}${window.location.search}`;
+  return `${window.location.origin}/api${window.location.pathname}${window.location.search}`;
 };
 
 const getDateString = () => {
-  return moment().format('YYYY-MM-DD_h.mm.ss_A');
+  return moment().format('YYYY-MM-DD [at] h.mm.ss A');
 };

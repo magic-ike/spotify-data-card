@@ -31,7 +31,7 @@ const renderPage = () => {
     loggedOutView.fadeIn();
     loggedInView.hide();
   } else {
-    const [cardPageUrl, imageUrl] = getRelativeUrls(userId);
+    const [cardPageUrl, imageUrl] = getUrls(userId);
     dataCardLink.attr('href', cardPageUrl);
     dataCard.attr('src', imageUrl);
 
@@ -78,7 +78,7 @@ const generateCard = () => {
 
 const copyCardCode = async () => {
   const userId = localStorage.getItem(USER_ID);
-  const [cardPageUrl, imageUrl] = getFullUrls(userId);
+  const [cardPageUrl, imageUrl] = getUrls(userId);
   const code = `<a href="${cardPageUrl}">
   <img src="${imageUrl}" />
 </a>`;
@@ -87,10 +87,11 @@ const copyCardCode = async () => {
 ${code}
 
 Click 'OK' to copy.`;
-  if (confirm(confirmation)) {
+  if (!confirm(confirmation)) return;
+  setTimeout(async () => {
     await navigator.clipboard.writeText(code);
     alert('Code copied to clipboard!');
-  }
+  }, DEFAULT_DELAY_TIME);
 };
 
 const logOut = () => {
@@ -131,14 +132,9 @@ const deleteCard = async () => {
 
 // helpers
 
-const getRelativeUrls = (userId) => {
-  const cardPageUrl = `/card?user_id=${userId}`;
-  const imageUrl = `/api${cardPageUrl}`;
+const getUrls = (userId) => {
+  const origin = window.location.origin;
+  const cardPageUrl = `${origin}/card?user_id=${userId}`;
+  const imageUrl = `${origin}/api/card?user_id=${userId}`;
   return [cardPageUrl, imageUrl];
-};
-
-const getFullUrls = (userId) => {
-  return getRelativeUrls(userId).map(
-    (url) => `${window.location.origin}${url}`
-  );
 };

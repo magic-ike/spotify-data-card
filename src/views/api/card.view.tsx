@@ -1,4 +1,5 @@
 import React from 'react';
+import moment from 'moment';
 import pixelWidth from 'string-pixel-width';
 import DataCardProps from '../../interfaces/data-card-props.interface';
 import { Item, isTrack } from '../../interfaces/item.interface';
@@ -38,6 +39,8 @@ const TEXT_FONT_SIZE = 14;
 
 export default function DataCard({
   userDisplayName,
+  showBorder,
+  showDate,
   customTitle,
   showTitle,
   hideExplicit,
@@ -51,9 +54,16 @@ export default function DataCard({
   topArtists,
   imageDataMap,
   itemLimit,
-  showBorder,
   errorMessage
 }: DataCardProps) {
+  // set card title
+  const cardTitle =
+    errorMessage ||
+    customTitle ||
+    `${userDisplayName}'s Spotify Data` +
+      (showDate ? ` on ${moment().format('MM-DD-YYYY [at] h:mm A')}` : '') +
+      (hideExplicit ? ' (Clean)' : '');
+
   // calculate card size
   let cardWidth = 0;
   let cardHeight = ATTRIBUTION_HEIGHT;
@@ -63,8 +73,8 @@ export default function DataCard({
   } else {
     // card width
     let minCardWidth = cardWidth + CELL_WIDTH;
-    for (const setting of [showRecentlyPlayed, showTopTracks, showTopArtists]) {
-      if (!setting) continue;
+    for (const option of [showRecentlyPlayed, showTopTracks, showTopArtists]) {
+      if (!option) continue;
       cardWidth += CELL_WIDTH;
     }
     cardWidth = Math.max(cardWidth, minCardWidth);
@@ -76,6 +86,7 @@ export default function DataCard({
       cardHeight += CARD_SUBTITLE_HEIGHT + CELL_HEIGHT * itemLimit;
   }
 
+  // get card size with spacing added
   const [finalCardWidth, finalCardHeight] = getFinalCardDimensions(
     cardWidth,
     cardHeight,
@@ -102,38 +113,31 @@ export default function DataCard({
               border: showBorder ? `${BORDER_WIDTH}px solid white` : undefined
             }}
           >
-            {errorMessage ? (
-              <div className="card-title error-message scrolling-container">
-                {textOverflows(
-                  errorMessage,
-                  CARD_TITLE_FONT_SIZE,
-                  ERROR_MESSAGE_WIDTH
-                ) ? (
-                  <>
-                    <div id="title" className="scrolling">
-                      {errorMessage}
-                    </div>
-                    <div className="scrolling" aria-hidden="true">
-                      {errorMessage}
-                    </div>
-                  </>
-                ) : (
-                  <div id="title">{errorMessage}</div>
-                )}
-              </div>
-            ) : (
-              <>
-                <div
-                  id="title"
-                  className="card-title"
-                  style={{ display: showTitle ? undefined : 'none' }}
-                >
-                  {customTitle ||
-                    `${userDisplayName}'s Spotify Data${
-                      hideExplicit ? ' (Clean)' : ''
-                    }`}
-                </div>
+            <div
+              className={
+                'card-title scrolling-container' +
+                (errorMessage ? ' error-message' : '')
+              }
+              style={{
+                display: showTitle || errorMessage ? undefined : 'none'
+              }}
+            >
+              {textOverflows(cardTitle, CARD_TITLE_FONT_SIZE, cardWidth) ? (
+                <>
+                  <div id="title" className="scrolling">
+                    {cardTitle}
+                  </div>
+                  <div className="scrolling" aria-hidden="true">
+                    {cardTitle}
+                  </div>
+                </>
+              ) : (
+                <div id="title">{cardTitle}</div>
+              )}
+            </div>
 
+            {!errorMessage && (
+              <>
                 {showNowPlaying && (
                   <section className="now-playing-section">
                     <div className="card-subtitle">Currently Listening To</div>
@@ -215,6 +219,7 @@ export default function DataCard({
                 </div>
               </>
             )}
+
             <div className="attribution">
               <SafeLink className="spotify-link" href="https://www.spotify.com">
                 <img

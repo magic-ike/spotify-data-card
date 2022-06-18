@@ -19,7 +19,7 @@
   --spotify-bg: #1ae68c;
   /* --spotify-bg-dark: #222326; */
   --std-spacing: 3rem;
-  --content-width: 1000px;
+  --content-width: 920px;
   --btn-height: 3rem;
   --footer-height: 5rem;
 
@@ -77,7 +77,7 @@ a:hover {
   display: none;
 }
 
-.code-link {
+.repo-link {
   display: block;
   white-space: nowrap;
   overflow: hidden;

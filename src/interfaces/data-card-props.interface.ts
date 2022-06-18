@@ -4,6 +4,8 @@ import StringMap from './map.interface';
 
 export default interface DataCardProps {
   userDisplayName: string;
+  showBorder: boolean;
+  showDate: boolean;
   customTitle?: string;
   showTitle: boolean;
   hideExplicit: boolean;
@@ -17,6 +19,5 @@ export default interface DataCardProps {
   topArtists: Artist[];
   imageDataMap: StringMap;
   itemLimit: number;
-  showBorder: boolean;
   errorMessage?: string;
 }

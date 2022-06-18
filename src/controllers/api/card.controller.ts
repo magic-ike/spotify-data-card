@@ -52,6 +52,7 @@ export const card_get: RequestHandler = async (req, res) => {
 
   // get options from query params
   const {
+    show_date,
     custom_title,
     hide_title,
     hide_explicit,
@@ -61,6 +62,7 @@ export const card_get: RequestHandler = async (req, res) => {
     hide_top_artists,
     limit
   } = cardReqBody;
+  const showDate = boolFromString(show_date);
   const customTitle = custom_title?.trim();
   const showTitle = !boolFromString(hide_title);
   const hideExplicit = boolFromString(hide_explicit);
@@ -158,6 +160,8 @@ export const card_get: RequestHandler = async (req, res) => {
   renderCard(
     res,
     userDisplayName,
+    showBorder,
+    showDate,
     showTitle,
     hideExplicit,
     showNowPlaying,
@@ -169,7 +173,6 @@ export const card_get: RequestHandler = async (req, res) => {
     showTopArtists,
     topArtists,
     itemLimit,
-    showBorder,
     customTitle
   );
 };
@@ -238,6 +241,8 @@ export const card_delete: RequestHandler = async (req, res) => {
 const renderCard = async (
   res: Response,
   userDisplayName: string,
+  showBorder: boolean,
+  showDate: boolean,
   showTitle: boolean,
   hideExplicit: boolean,
   showNowPlaying: boolean,
@@ -249,7 +254,6 @@ const renderCard = async (
   showTopArtists: boolean,
   topArtists: Artist[],
   itemLimit: number,
-  showBorder: boolean,
   customTitle?: string
 ) => {
   // TODO: add cache-control header? (good responses only)
@@ -262,6 +266,8 @@ const renderCard = async (
   ]);
   const dataCardProps: DataCardProps = {
     userDisplayName,
+    showBorder,
+    showDate,
     customTitle,
     showTitle,
     hideExplicit,
@@ -274,8 +280,7 @@ const renderCard = async (
     showTopArtists,
     topArtists,
     imageDataMap,
-    itemLimit,
-    showBorder
+    itemLimit
   };
   res.render(CARD_VIEW_PATH, dataCardProps);
 };
