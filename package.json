@@ -28,6 +28,7 @@
     "mongoose": "^6.3.3",
     "react": "^18.1.0",
     "react-dom": "^18.1.0",
+    "redis": "^4.1.0",
     "string-pixel-width": "^1.10.0"
   },
   "devDependencies": {

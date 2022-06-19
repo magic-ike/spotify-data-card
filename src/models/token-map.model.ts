@@ -1,6 +1,12 @@
 import { model, Schema } from 'mongoose';
+import { redisClient } from '../server';
 import Auth from './auth.model';
 import ITokenMap from '../interfaces/token-map.interface';
+import { msFromDateString } from '../utils/string.util';
+import {
+  getProfileCacheKey,
+  getTokenMapCacheKey
+} from '../utils/cache-key.util';
 
 const tokenMapSchema = new Schema<ITokenMap>(
   {
@@ -19,7 +25,7 @@ const tokenMapSchema = new Schema<ITokenMap>(
     accessTokenExpiresAt: {
       type: Date,
       required: true,
-      get: (v: string) => Date.parse(v)
+      get: msFromDateString
     }
   },
   { timestamps: true }
@@ -58,6 +64,7 @@ export default class TokenMap extends MongoTokenMap {
         return;
       }
       resolve(tokenMap);
+      saveTokenMapToCache(userId, tokenMap);
     });
   }
 
@@ -103,6 +110,7 @@ export default class TokenMap extends MongoTokenMap {
         return;
       }
       resolve(tokenMap);
+      saveTokenMapToCache(userId, tokenMap);
     });
   }
 
@@ -120,6 +128,15 @@ export default class TokenMap extends MongoTokenMap {
         return;
       }
       resolve(tokenMap);
+
+      // delete from cache
+      try {
+        await redisClient.del(getTokenMapCacheKey(userId));
+        await redisClient.del(getProfileCacheKey(userId));
+        // TODO: delete top item keys
+      } catch (error) {
+        console.log(error);
+      }
     });
   }
 }
@@ -128,13 +145,32 @@ export default class TokenMap extends MongoTokenMap {
 
 TokenMap.getLatestAccessToken = function (userId: string): Promise<string> {
   return new Promise(async (resolve, reject) => {
-    // fetch token map associated with user id
-    let tokenMap;
+    // attempt to fetch token map from cache
+    let cachedTokenMap: ITokenMap | null = null;
     try {
-      tokenMap = await this.getTokenMap(userId);
+      cachedTokenMap = JSON.parse(
+        (await redisClient.get(getTokenMapCacheKey(userId))) || 'null'
+      );
     } catch (error) {
-      reject(error);
-      return;
+      console.log(error);
+    }
+
+    // fetch token map from db if necessary
+    let tokenMap;
+    let cacheHit = false;
+    if (cachedTokenMap !== null) {
+      cachedTokenMap.accessTokenExpiresAt = msFromDateString(
+        cachedTokenMap.accessTokenExpiresAt as string
+      );
+      tokenMap = cachedTokenMap;
+      cacheHit = true;
+    } else {
+      try {
+        tokenMap = await this.getTokenMap(userId);
+      } catch (error) {
+        reject(error);
+        return;
+      }
     }
 
     // get tokens from token map and update access token if it's expired
@@ -169,5 +205,16 @@ TokenMap.getLatestAccessToken = function (userId: string): Promise<string> {
 
     // resolve with access token
     resolve(accessToken);
+
+    // save access token to cache if necessary
+    if (!cacheHit) saveTokenMapToCache(userId, tokenMap);
   });
+};
+
+// helper functions
+
+const saveTokenMapToCache = (userId: string, tokenMap: ITokenMap) => {
+  redisClient
+    .set(getTokenMapCacheKey(userId), JSON.stringify(tokenMap))
+    .catch((error) => console.log(error));
 };

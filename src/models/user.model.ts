@@ -1,4 +1,5 @@
 import axios, { AxiosError } from 'axios';
+import { redisClient, getFromOrSaveToCache } from '../server';
 import UserProfileResponseBody from '../interfaces/user-profile-response-body.interface';
 import CurrentlyPlayingResponseBody from '../interfaces/currently-playing-response-body.interface';
 import RecentlyPlayedResponseBody from '../interfaces/recently-played-response-body.interface';
@@ -7,13 +8,26 @@ import TrackResponseBody from '../interfaces/track-response-body.interface';
 import ArtistResponseBody from '../interfaces/artist-response-body.interface';
 import Track from '../interfaces/track.interface';
 import Artist from '../interfaces/artist.interface';
+import { Item, isTrack } from '../interfaces/item.interface';
+import StringMap from '../interfaces/map.interface';
+import { getBase64DataFromImageUrl } from '../utils/image.util';
+import {
+  getImagesCacheKey,
+  getProfileCacheKey,
+  getTopArtistsCacheKey,
+  getTopTracksCacheKey
+} from '../utils/cache-key.util';
 
+// mongo
 const PROFILE_ENDPOINT = 'https://api.spotify.com/v1/me';
 const NOW_PLAYING_ENDPOINT = `${PROFILE_ENDPOINT}/player/currently-playing`;
 const RECENTLY_PLAYED_ENDPOINT = `${PROFILE_ENDPOINT}/player/recently-played`;
 const TOP_TRACKS_ENDPOINT = `${PROFILE_ENDPOINT}/top/tracks`;
 const TOP_ARTISTS_ENDPOINT = `${PROFILE_ENDPOINT}/top/artists`;
 const DEFAULT_LIMIT = 20;
+
+// redis
+const DEFAULT_EXPIRATION = 86400; // 1 day
 
 export default class User {
   static getUserProfile(accessToken: string): Promise<UserProfileResponseBody> {
@@ -29,7 +43,20 @@ export default class User {
         reject((error as AxiosError).message);
         return;
       }
-      resolve(response.data);
+      const { id: userId, display_name }: UserProfileResponseBody =
+        response.data;
+      const profile = { id: userId, display_name };
+      resolve(profile);
+
+      // save to cache
+      try {
+        await redisClient.set(
+          getProfileCacheKey(userId),
+          JSON.stringify(profile)
+        );
+      } catch (error) {
+        console.log(error);
+      }
     });
   }
 
@@ -72,7 +99,7 @@ export default class User {
         title: trackData.name,
         artist: trackData.artists.map((_artist) => _artist.name).join(', '),
         albumTitle: trackData.album.name,
-        albumImageUrl: trackData.album.images[0].url,
+        albumImageUrl: trackData.album.images[2].url,
         explicit: trackData.explicit,
         url: trackData.external_urls.spotify
       });
@@ -119,7 +146,7 @@ export default class User {
           title: trackData.name,
           artist: trackData.artists.map((_artist) => _artist.name).join(', '),
           albumTitle: trackData.album.name,
-          albumImageUrl: trackData.album.images[0].url,
+          albumImageUrl: trackData.album.images[2].url,
           explicit: trackData.explicit,
           url: trackData.external_urls.spotify
         }))
@@ -128,78 +155,114 @@ export default class User {
   }
 
   static getTopTracks(
+    userId: string,
     accessToken: string,
     hideExplicit: boolean,
     limit: number
   ): Promise<Track[]> {
-    return new Promise(async (resolve, reject) => {
-      // fetch top tracks
-      let response;
-      try {
-        response = await axios.get<TopItemsResponseBody>(
-          `${TOP_TRACKS_ENDPOINT}?limit=${
-            hideExplicit ? DEFAULT_LIMIT : limit
-          }`,
-          {
-            headers: {
-              Authorization: `Bearer ${accessToken}`
-            }
+    return getFromOrSaveToCache(
+      getTopTracksCacheKey(userId, hideExplicit, limit),
+      () => {
+        return new Promise(async (resolve, reject) => {
+          // fetch top tracks
+          let response;
+          try {
+            response = await axios.get<TopItemsResponseBody>(
+              `${TOP_TRACKS_ENDPOINT}?limit=${
+                hideExplicit ? DEFAULT_LIMIT : limit
+              }`,
+              {
+                headers: {
+                  Authorization: `Bearer ${accessToken}`
+                }
+              }
+            );
+          } catch (error) {
+            reject((error as AxiosError).message);
+            return;
           }
-        );
-      } catch (error) {
-        reject((error as AxiosError).message);
-        return;
-      }
 
-      // hide explicit tracks if necessary
-      let trackDataArray = response.data.items as TrackResponseBody[];
-      if (hideExplicit) {
-        trackDataArray = trackDataArray.filter(
-          (trackData) => !trackData.explicit
-        );
-      }
+          // hide explicit tracks if necessary
+          let trackDataArray = response.data.items as TrackResponseBody[];
+          if (hideExplicit) {
+            trackDataArray = trackDataArray.filter(
+              (trackData) => !trackData.explicit
+            );
+          }
 
-      // resolve with tracks
-      resolve(
-        trackDataArray.slice(0, limit).map((trackData) => ({
-          title: trackData.name,
-          artist: trackData.artists.map((_artist) => _artist.name).join(', '),
-          albumTitle: trackData.album.name,
-          albumImageUrl: trackData.album.images[0].url,
-          explicit: trackData.explicit,
-          url: trackData.external_urls.spotify
-        }))
-      );
-    });
+          // resolve with tracks
+          resolve(
+            trackDataArray.slice(0, limit).map((trackData) => ({
+              title: trackData.name,
+              artist: trackData.artists
+                .map((_artist) => _artist.name)
+                .join(', '),
+              albumTitle: trackData.album.name,
+              albumImageUrl: trackData.album.images[2].url,
+              explicit: trackData.explicit,
+              url: trackData.external_urls.spotify
+            }))
+          );
+        });
+      },
+      DEFAULT_EXPIRATION
+    );
   }
 
-  static getTopArtists(accessToken: string, limit: number): Promise<Artist[]> {
-    return new Promise(async (resolve, reject) => {
-      // fetch top artists
-      let response;
-      try {
-        response = await axios.get<TopItemsResponseBody>(
-          `${TOP_ARTISTS_ENDPOINT}?limit=${limit}`,
-          {
-            headers: {
-              Authorization: `Bearer ${accessToken}`
-            }
+  static getTopArtists(
+    userId: string,
+    accessToken: string,
+    limit: number
+  ): Promise<Artist[]> {
+    return getFromOrSaveToCache(
+      getTopArtistsCacheKey(userId, limit),
+      () => {
+        return new Promise(async (resolve, reject) => {
+          // fetch top artists
+          let response;
+          try {
+            response = await axios.get<TopItemsResponseBody>(
+              `${TOP_ARTISTS_ENDPOINT}?limit=${limit}`,
+              {
+                headers: {
+                  Authorization: `Bearer ${accessToken}`
+                }
+              }
+            );
+          } catch (error) {
+            reject((error as AxiosError).message);
+            return;
           }
-        );
-      } catch (error) {
-        reject((error as AxiosError).message);
-        return;
-      }
 
-      // resolve with artists
-      const artistDataArray = response.data.items as ArtistResponseBody[];
-      resolve(
-        artistDataArray.map((artistData) => ({
-          name: artistData.name,
-          imageUrl: artistData.images[0].url,
-          url: artistData.external_urls.spotify
-        }))
-      );
-    });
+          // resolve with artists
+          const artistDataArray = response.data.items as ArtistResponseBody[];
+          resolve(
+            artistDataArray.map((artistData) => ({
+              name: artistData.name,
+              imageUrl: artistData.images[2].url,
+              url: artistData.external_urls.spotify
+            }))
+          );
+        });
+      },
+      DEFAULT_EXPIRATION
+    );
   }
+
+  static getImageDataMapFromItems = async (items: Item[]) => {
+    const map: StringMap = {};
+    for (const item of items) {
+      if (!item) continue;
+      const imageUrl = isTrack(item) ? item.albumImageUrl : item.imageUrl;
+      const imageUrlArray = imageUrl.split('/');
+      const imageId = imageUrlArray[imageUrlArray.length - 1];
+      map[imageUrl] = await getFromOrSaveToCache(
+        getImagesCacheKey(imageId),
+        () => {
+          return getBase64DataFromImageUrl(imageUrl);
+        }
+      );
+    }
+    return map;
+  };
 }

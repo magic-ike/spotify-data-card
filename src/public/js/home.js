@@ -16,31 +16,31 @@ const renderPage = () => {
   const refreshToken = localStorage.getItem(REFRESH_TOKEN);
   const loggedIn = userId && refreshToken;
 
-  const loadingImgContainer = $('.loading-img-container');
-  const dataCardLink = $('.data-card-link');
-  const dataCard = $('.data-card');
-  const loggedOutView = $('.logged-out-view');
-  const loggedInView = $('.logged-in-view');
+  const $loadingImgContainer = $('.loading-img-container');
+  const $dataCardLink = $('.data-card-link');
+  const $dataCard = $('.data-card');
+  const $loggedOutView = $('.logged-out-view');
+  const $loggedInView = $('.logged-in-view');
 
-  dataCard.one('load', () => loadingImgContainer.hide());
+  $dataCard.one('load', () => $loadingImgContainer.hide());
 
   if (!loggedIn) {
-    dataCardLink.removeAttr('href');
-    dataCard.removeAttr('src');
+    $dataCardLink.removeAttr('href');
+    $dataCard.removeAttr('src');
 
-    loggedOutView.fadeIn();
-    loggedInView.hide();
+    $loggedOutView.fadeIn();
+    $loggedInView.hide();
   } else {
     const [cardPageUrl, imageUrl] = getUrls(userId);
-    dataCardLink.attr('href', cardPageUrl);
-    dataCard.attr('src', imageUrl);
+    $dataCardLink.attr('href', cardPageUrl);
+    $dataCard.attr('src', imageUrl);
 
-    loggedOutView.hide();
-    loggedInView.fadeIn();
+    $loggedOutView.hide();
+    $loggedInView.fadeIn();
   }
 
-  const body = $('body');
-  if (body.is(':hidden')) body.show();
+  const $body = $('body');
+  if ($body.is(':hidden')) $body.show();
 };
 
 // hash params

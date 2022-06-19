@@ -28,3 +28,7 @@ export const intFromString = (defaultVal: number, str?: string) => {
   if (isNaN(num)) return defaultVal;
   return num;
 };
+
+export const msFromDateString = (str: string) => {
+  return Date.parse(str);
+};

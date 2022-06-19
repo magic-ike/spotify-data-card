@@ -9,7 +9,7 @@ import { getBase64DataFromImagePath } from '../../utils/image.util';
 import { SHORT_URL } from '../../utils/config.util';
 
 // card dimensions
-const BORDER_WIDTH = 3;
+const BORDER_WIDTH = 2;
 const CARD_SPACING = 10;
 const CARD_TITLE_HEIGHT = 50;
 const CARD_SUBTITLE_HEIGHT = 45;
@@ -61,7 +61,7 @@ export default function DataCard({
     errorMessage ||
     customTitle ||
     `${userDisplayName}'s Spotify Data` +
-      (showDate ? ` on ${moment().format('MM-DD-YYYY [at] h:mm A')}` : '') +
+      (showDate ? ` on ${moment().format('MM/DD/YYYY [at] h:mm A')}` : '') +
       (hideExplicit ? ' (Clean)' : '');
 
   // calculate card size
@@ -443,7 +443,7 @@ const generateDataCardCellCSS = () => {
     .card-container {
       background-color: var(--black);
       color: white;
-      border-radius: 15px;
+      border-radius: 20px;
       overflow: hidden;
     }
 

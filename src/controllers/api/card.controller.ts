@@ -3,14 +3,11 @@ import TokenMap from '../../models/token-map.model';
 import User from '../../models/user.model';
 import CardGetRequestQueryParams from '../../interfaces/card-get-request-query-params.interface';
 import CardDeleteRequestQueryParams from '../../interfaces/card-delete-request-query-params.interface';
-import { isTrack, Item } from '../../interfaces/item.interface';
 import Track from '../../interfaces/track.interface';
 import Artist from '../../interfaces/artist.interface';
 import DataCardProps from '../../interfaces/data-card-props.interface';
-import StringMap from '../../interfaces/map.interface';
 import { SHORT_URL } from '../../utils/config.util';
 import { boolFromString, boundedIntFromString } from '../../utils/string.util';
-import { getBase64DataFromImageUrl } from '../../utils/image.util';
 
 const DEFAULT_ITEM_COUNT = 5;
 const MIN_ITEM_COUNT = 1;
@@ -92,7 +89,7 @@ export const card_get: RequestHandler = async (req, res) => {
     return;
   }
 
-  // get currently playing track
+  // fetch currently playing track
   let nowPlaying = null;
   if (showNowPlaying) {
     try {
@@ -107,7 +104,7 @@ export const card_get: RequestHandler = async (req, res) => {
     }
   }
 
-  // get recently played tracks
+  // fetch recently played tracks
   let recentlyPlayed: Track[] = [];
   if (showRecentlyPlayed) {
     try {
@@ -126,11 +123,16 @@ export const card_get: RequestHandler = async (req, res) => {
     }
   }
 
-  // get top tracks
+  // fetch top tracks
   let topTracks: Track[] = [];
   if (showTopTracks) {
     try {
-      topTracks = await User.getTopTracks(accessToken, hideExplicit, itemLimit);
+      topTracks = await User.getTopTracks(
+        userId,
+        accessToken,
+        hideExplicit,
+        itemLimit
+      );
     } catch (error) {
       renderErrorCard(
         res,
@@ -141,11 +143,11 @@ export const card_get: RequestHandler = async (req, res) => {
     }
   }
 
-  // get top artists
+  // fetch top artists
   let topArtists: Artist[] = [];
   if (showTopArtists) {
     try {
-      topArtists = await User.getTopArtists(accessToken, itemLimit);
+      topArtists = await User.getTopArtists(userId, accessToken, itemLimit);
     } catch (error) {
       renderErrorCard(
         res,
@@ -157,11 +159,18 @@ export const card_get: RequestHandler = async (req, res) => {
   }
 
   // render data card
-  renderCard(
-    res,
+  // TODO: add cache-control header?
+  const imageDataMap = await User.getImageDataMapFromItems([
+    nowPlaying,
+    ...recentlyPlayed,
+    ...topTracks,
+    ...topArtists
+  ]);
+  const dataCardProps: DataCardProps = {
     userDisplayName,
     showBorder,
     showDate,
+    customTitle,
     showTitle,
     hideExplicit,
     showNowPlaying,
@@ -172,9 +181,10 @@ export const card_get: RequestHandler = async (req, res) => {
     topTracks,
     showTopArtists,
     topArtists,
-    itemLimit,
-    customTitle
-  );
+    imageDataMap,
+    itemLimit
+  };
+  res.render(CARD_VIEW_PATH, dataCardProps);
 };
 
 // deletes a data card
@@ -237,66 +247,6 @@ export const card_delete: RequestHandler = async (req, res) => {
 };
 
 // helper functions
-
-const renderCard = async (
-  res: Response,
-  userDisplayName: string,
-  showBorder: boolean,
-  showDate: boolean,
-  showTitle: boolean,
-  hideExplicit: boolean,
-  showNowPlaying: boolean,
-  nowPlaying: Track | null,
-  showRecentlyPlayed: boolean,
-  recentlyPlayed: Track[],
-  showTopTracks: boolean,
-  topTracks: Track[],
-  showTopArtists: boolean,
-  topArtists: Artist[],
-  itemLimit: number,
-  customTitle?: string
-) => {
-  // TODO: add cache-control header? (good responses only)
-
-  const imageDataMap = await getImageDataMap([
-    nowPlaying,
-    ...recentlyPlayed,
-    ...topTracks,
-    ...topArtists
-  ]);
-  const dataCardProps: DataCardProps = {
-    userDisplayName,
-    showBorder,
-    showDate,
-    customTitle,
-    showTitle,
-    hideExplicit,
-    showNowPlaying,
-    nowPlaying,
-    showRecentlyPlayed,
-    recentlyPlayed,
-    showTopTracks,
-    topTracks,
-    showTopArtists,
-    topArtists,
-    imageDataMap,
-    itemLimit
-  };
-  res.render(CARD_VIEW_PATH, dataCardProps);
-};
-
-const getImageDataMap = async (items: Item[]) => {
-  const map: StringMap = {};
-  for (const item of items) {
-    if (!item) continue;
-    if (isTrack(item)) {
-      map[item.albumImageUrl] = await getBase64DataFromImageUrl(
-        item.albumImageUrl
-      );
-    } else map[item.imageUrl] = await getBase64DataFromImageUrl(item.imageUrl);
-  }
-  return map;
-};
 
 const renderErrorCard = (
   res: Response,
