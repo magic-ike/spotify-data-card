@@ -7,6 +7,7 @@ import cookieParser from 'cookie-parser';
 import pageRouter from './routes/index.route';
 import authRouter from './routes/auth/index.route';
 import apiRouter from './routes/api/index.route';
+import { SITE_TITLE } from './utils/constant.util';
 
 // express app
 const app = express();
@@ -18,7 +19,7 @@ app.engine(
     extname: '.hbs',
     defaultLayout: 'main.view.hbs',
     helpers: {
-      title: 'Spotify Data Card',
+      siteTitle: SITE_TITLE,
       areEqual: (a: any, b: any) => a === b
     }
   })

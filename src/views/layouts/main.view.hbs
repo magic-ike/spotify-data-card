@@ -3,6 +3,35 @@
     <meta charset='UTF-8' />
     <meta http-equiv='X-UA-Compatible' content='IE=edge' />
     <meta name='viewport' content='width=device-width, initial-scale=1.0' />
+    <title>{{pageTitle}}</title>
+    <meta name="description" content="{{pageDescription}}" />
+    
+    <!-- open graph metadata -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="{{pageTitle}}" />
+    <meta
+      property="og:description"
+      content="{{pageDescription}}"
+    />
+    <meta property="og:url" content="{{pageUrl}}" />
+    <meta
+      property="og:image"
+      content="{{siteImage}}"
+    />
+
+    <!-- twitter metadata -->
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:text:title" content="{{pageTitle}}" />
+    <meta
+      name="twitter:description"
+      content="{{pageDescription}}"
+    />
+    <meta name="twitter:url" content="{{pageUrl}}" />
+    <meta
+      name="twitter:image"
+      content="{{siteImage}}"
+    />
+
     <link rel='stylesheet' href='css/main.css' />
     <link rel='stylesheet' href='css/fonts.css' />
     <script
@@ -13,13 +42,11 @@
 
     {{#if (areEqual @exphbs.view 'home/index.view')}}
       <script src='js/home.js' defer></script>
-      <title>{{title}}</title>
     {{/if}}
 
     {{#if (areEqual @exphbs.view 'card/index.view')}}
       <script src='https://momentjs.com/downloads/moment.js' defer></script>
       <script src='js/card.js' defer></script>
-      <title>Card View - {{title}}</title>
     {{/if}}
 
   </head>
@@ -27,11 +54,11 @@
     {{> loading-view.view}}
     <div class="main-view">
       <div class='container'>
-        <h1 class='title'>{{title}}</h1>
+        <h1 class='title'>{{siteTitle}}</h1>
         <p class='subtitle'>
 
           {{#if (areEqual @exphbs.view 'home/index.view')}}
-            Share your music taste with the world.
+            {{pageDescription}}
           {{/if}}
 
           {{#if (areEqual @exphbs.view 'card/index.view')}}

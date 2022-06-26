@@ -3,7 +3,7 @@ import { RequestHandler, Response } from 'express';
 import Auth from '../../models/auth.model';
 import User from '../../models/user.model';
 import TokenMap from '../../models/token-map.model';
-import { CLIENT_ID } from '../../utils/config.util';
+import { CLIENT_ID } from '../../utils/constant.util';
 import { getBaseUrl, getFullUrl } from '../../utils/url.util';
 import { generateRandomString } from '../../utils/string.util';
 

@@ -6,7 +6,7 @@ import CardDeleteRequestQueryParams from '../../interfaces/card-delete-request-q
 import Track from '../../interfaces/track.interface';
 import Artist from '../../interfaces/artist.interface';
 import DataCardProps from '../../interfaces/data-card-props.interface';
-import { SHORT_URL } from '../../utils/config.util';
+import { SHORT_URL } from '../../utils/constant.util';
 import { boolFromString, boundedIntFromString } from '../../utils/string.util';
 
 const DEFAULT_ITEM_COUNT = 5;

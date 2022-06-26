@@ -9,7 +9,7 @@ import 'dotenv/config';
 import mongoose from 'mongoose';
 import { createClient } from 'redis';
 import app from './app';
-import { MONGODB_URI, REDIS_URI, PORT } from './utils/config.util';
+import { MONGODB_URI, REDIS_URI, PORT } from './utils/constant.util';
 
 const redisClient = createClient({ url: REDIS_URI });
 

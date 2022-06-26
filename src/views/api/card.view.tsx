@@ -6,7 +6,7 @@ import { Item, isTrack } from '../../interfaces/item.interface';
 import StringMap from '../../interfaces/map.interface';
 import { randomIntFromInterval } from '../../utils/number.util';
 import { getBase64DataFromImagePath } from '../../utils/image.util';
-import { SHORT_URL } from '../../utils/config.util';
+import { SHORT_URL, SPOTIFY_WHITE_LOGO_PATH } from '../../utils/constant.util';
 
 // card dimensions
 const BORDER_WIDTH = 2;
@@ -227,7 +227,7 @@ export default function DataCard({
                   src={
                     'data:image/png;base64,' +
                     getBase64DataFromImagePath(
-                      'src/public/images/Spotify_Logo_RGB_White.png'
+                      `src/public${SPOTIFY_WHITE_LOGO_PATH}`
                     )
                   }
                   alt="spotify.com"
