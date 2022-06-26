@@ -9,14 +9,14 @@
 </div>
 
 <div class='column-view logged-in-view'>
-  <div class='btn-row'>
+  {{#> button-row.view}}
     <button class='btn copy-btn' onclick='copyCardCode()'>Copy Code</button>
     <button class='btn logout-btn' onclick='logOut()'>Log Out</button>
     <div class="delete-btn-group">
       {{> loading-button.view}}
       <button class='btn delete-btn' onclick='deleteCard()'>Delete Card</button>
     </div>
-  </div>
+  {{/button-row.view}}
   <a class='data-card-link'>
     {{> loading-image.view}}
     <img class='data-card' alt='Data Card' />

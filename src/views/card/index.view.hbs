@@ -1,10 +1,10 @@
 <div class='column-view'>
-  <div class='btn-row'>
-    <button class='btn share-btn' onclick='copyCardPageLink()'>Copy Link</button>
-    <button class='btn save-btn' onclick='saveCardSnapshot()'>Save Snapshot</button>
-    <button class='btn home-btn' onclick='goToHomePage()'>Home Page</button>
-  </div>
-  <div class='data-card-container'>
+  {{#> button-row.view}}
+      <button class='btn share-btn' onclick='copyCardPageLink()'>Copy Link</button>
+      <button class='btn save-btn' onclick='saveCardSnapshot()'>Save Snapshot</button>
+      <button class='btn home-btn' onclick='goToHomePage()'>Home Page</button>
+  {{/button-row.view}}
+  <div class='data-card-container horizontal-scroll'>
     {{> loading-image.view}}
     <object class='interactive-data-card' type='image/svg+xml'>
       <img class='data-card' alt='Data Card' />
