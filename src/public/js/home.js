@@ -39,8 +39,7 @@ const renderPage = () => {
     $loggedInView.fadeIn();
   }
 
-  const $body = $('body');
-  if ($body.is(':hidden')) $body.show();
+  showMainView();
 };
 
 // hash params
@@ -72,7 +71,7 @@ const getHashParams = () => {
 
 const generateCard = () => {
   $('.gen-btn').hide();
-  $('.gen-btn-group > .btn-loading-img').show();
+  $('.gen-btn-group > .loading-btn').show();
   window.location.href = '/auth/login';
 };
 
@@ -103,7 +102,7 @@ const deleteCard = async () => {
   if (!confirm('Are you sure you want to delete your data card?')) return;
 
   $('.delete-btn').hide();
-  $('.delete-btn-group > .btn-loading-img').show();
+  $('.delete-btn-group > .loading-btn').show();
 
   const userId = localStorage.getItem(USER_ID);
   const refreshToken = localStorage.getItem(REFRESH_TOKEN);

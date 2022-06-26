@@ -37,8 +37,16 @@ a:hover {
   color: var(--spotify-green);
 }
 
-.container {
+.main-view {
+  display: none;
+}
+
+.loading-view,
+.main-view {
   background-color: var(--spotify-bg);
+}
+
+.container {
   min-height: calc(100vh - var(--footer-height));
   padding: var(--std-spacing);
   display: flex;
@@ -100,9 +108,13 @@ a:hover {
   height: 100px;
 }
 
-.btn-loading-img {
-  height: var(--btn-height);
+.loading-btn {
   display: none;
+}
+
+.loading-btn > .loading-img {
+  filter: brightness(0%);
+  height: 2rem;
 }
 
 /* common styles */
@@ -114,6 +126,14 @@ a:hover {
   gap: var(--std-spacing);
 }
 
+.btn-row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
 .btn {
   background-color: white;
   font-weight: 700;
@@ -122,22 +142,14 @@ a:hover {
   border-radius: calc(var(--btn-height) / 2);
 }
 
-.btn:hover {
+.btn:enabled:hover {
   cursor: pointer;
   filter: brightness(0.95);
   transform: scale(1.05);
 }
 
-.btn:active {
+.btn:enabled:active {
   box-shadow: 0 0 0 3px var(--spotify-bg), 0 0 0 6px white;
-}
-
-.btn-row {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 1rem;
 }
 
 .data-card {

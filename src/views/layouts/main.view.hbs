@@ -5,11 +5,11 @@
     <meta name='viewport' content='width=device-width, initial-scale=1.0' />
     <link rel='stylesheet' href='css/main.css' />
     <link rel='stylesheet' href='css/fonts.css' />
-    <script>document.write('<style>body { display: none; }</style>');</script>
     <script
       src='https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js'
       defer
     ></script>
+    <script src='js/main.js' defer></script>
 
     {{#if (areEqual @exphbs.view 'home/index.view')}}
       <script src='js/home.js' defer></script>
@@ -24,23 +24,24 @@
 
   </head>
   <body>
-    <div class='container'>
-      <h1 class='title'>{{title}}</h1>
-      <p class='subtitle'>
+    {{> loading-view.view}}
+    <div class="main-view">
+      <div class='container'>
+        <h1 class='title'>{{title}}</h1>
+        <p class='subtitle'>
 
-        {{#if (areEqual @exphbs.view 'home/index.view')}}
-          Share your music taste with the world.
-        {{/if}}
+          {{#if (areEqual @exphbs.view 'home/index.view')}}
+            Share your music taste with the world.
+          {{/if}}
 
-        {{#if (areEqual @exphbs.view 'card/index.view')}}
-          Card View
-        {{/if}}
+          {{#if (areEqual @exphbs.view 'card/index.view')}}
+            Card View
+          {{/if}}
 
-      </p>
-      <div class='content'>
-
-        {{{body}}}
-
+        </p>
+        <div class='content'>
+          {{{body}}}
+        </div>
       </div>
     </div>
     <footer class='footer'>

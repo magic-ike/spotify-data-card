@@ -9,14 +9,14 @@ const renderPage = () => {
   const $iDataCard = $('.interactive-data-card');
   const $dataCard = $('.data-card');
 
-  $dataCard.one('load', () => $loadingImgContainer.hide());
-
   const imageUrl = getImageUrl();
-  $iDataCard.attr('data', imageUrl);
+  $dataCard.one('load', () => {
+    $iDataCard.attr('data', imageUrl); // must be run after the main view is visible
+    $loadingImgContainer.hide();
+  });
   $dataCard.attr('src', imageUrl);
 
-  const $body = $('body');
-  if ($body.is(':hidden')) $body.show();
+  showMainView();
 };
 
 // buttons
