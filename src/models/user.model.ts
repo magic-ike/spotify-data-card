@@ -16,7 +16,7 @@ import {
   getProfileCacheKey,
   getTopArtistsCacheKey,
   getTopTracksCacheKey
-} from '../utils/cache-key.util';
+} from '../utils/cache.util';
 
 // mongo
 const PROFILE_ENDPOINT = 'https://api.spotify.com/v1/me';

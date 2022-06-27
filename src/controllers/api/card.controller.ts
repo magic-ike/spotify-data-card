@@ -259,5 +259,5 @@ const renderErrorCard = (
 const getGenericErrorMessage = (userId: string, userDisplayName?: string) => {
   return `Something went wrong! ${
     userDisplayName || `The user with ID ${userId}`
-  } may need to re-generate a card at ${SHORT_URL}.`;
+  } may need to re-generate a data card at ${SHORT_URL}.`;
 };

@@ -5,8 +5,9 @@ import ITokenMap from '../interfaces/token-map.interface';
 import { msFromDateString } from '../utils/string.util';
 import {
   getProfileCacheKey,
-  getTokenMapCacheKey
-} from '../utils/cache-key.util';
+  getTokenMapCacheKey,
+  getTopItemCacheDeletionScript
+} from '../utils/cache.util';
 
 const tokenMapSchema = new Schema<ITokenMap>(
   {
@@ -133,7 +134,8 @@ export default class TokenMap extends MongoTokenMap {
       try {
         await redisClient.del(getTokenMapCacheKey(userId));
         await redisClient.del(getProfileCacheKey(userId));
-        // TODO: delete top item keys
+        await redisClient.eval(getTopItemCacheDeletionScript(userId, 'Track'));
+        await redisClient.eval(getTopItemCacheDeletionScript(userId, 'Artist'));
       } catch (error) {
         console.log(error);
       }

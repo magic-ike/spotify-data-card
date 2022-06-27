@@ -170,17 +170,24 @@ a:hover {
   height: var(--btn-height);
   padding: 0 2rem;
   border-radius: calc(var(--btn-height) / 2);
+  box-shadow: 0 0 0 var(--btn-outline-width) transparent;
+  transition: box-shadow 0.3s ease;
 }
 
 .btn:enabled:hover {
   cursor: pointer;
-  filter: brightness(0.95);
   transform: scale(var(--btn-hover-scale));
 }
 
 .btn:enabled:active {
   box-shadow: 0 0 0 calc(var(--btn-outline-width) / 2) var(--spotify-bg),
     0 0 0 var(--btn-outline-width) white;
+  transform: initial;
+}
+
+.btn:enabled:hover,
+.btn:enabled:active {
+  filter: brightness(0.95);
 }
 
 .data-card {
