@@ -1,7 +1,7 @@
 import { stringify } from 'querystring';
 import axios, { AxiosError } from 'axios';
 import AccessTokenResponseBody from '../interfaces/access-token-response-body.interface';
-import { CLIENT_ID, CLIENT_SECRET } from '../utils/constant.util';
+import { CLIENT_ID, CLIENT_SECRET } from '../config/index.config';
 
 const AUTH_CODE = 'authorization_code';
 const REFRESH_TOKEN = 'refresh_token';

@@ -1,11 +1,11 @@
-// config
-export const CLIENT_ID = process.env.SPOTIFY_CLIENT_ID!;
-export const CLIENT_SECRET = process.env.SPOTIFY_CLIENT_SECRET!;
-export const MONGODB_URI = process.env.MONGODB_CONNECTION_STRING!;
-export const REDIS_URI = process.env.REDIS_CONNECTION_STRING!;
-export const PORT = process.env.PORT || 8080;
+// routes
+export const CARD_PATH = '/card';
+export const AUTH_PATH = '/auth';
+export const LOGIN_PATH = '/login';
+export const CALLBACK_PATH = '/callback';
+export const API_PATH = '/api';
 
-// other constants
+// other
 export const SITE_TITLE = 'Spotify Data Card';
 export const SHORT_URL = 'iodev.io/s-d-c';
 export const SPOTIFY_WHITE_LOGO_PATH = '/images/Spotify_Logo_RGB_White.png';

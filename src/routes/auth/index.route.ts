@@ -3,10 +3,11 @@ import {
   auth_login,
   auth_callback
 } from '../../controllers/auth/index.controller';
+import { CALLBACK_PATH, LOGIN_PATH } from '../../utils/constant.util';
 
 const authRouter = express.Router();
 
-authRouter.route('/login').get(auth_login);
-authRouter.route('/callback').get(auth_callback);
+authRouter.route(LOGIN_PATH).get(auth_login);
+authRouter.route(CALLBACK_PATH).get(auth_callback);
 
 export default authRouter;

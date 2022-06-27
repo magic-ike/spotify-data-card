@@ -3,7 +3,8 @@ import { RequestHandler, Response } from 'express';
 import Auth from '../../models/auth.model';
 import User from '../../models/user.model';
 import TokenMap from '../../models/token-map.model';
-import { CLIENT_ID } from '../../utils/constant.util';
+import { CLIENT_ID } from '../../config/index.config';
+import { CALLBACK_PATH } from '../../utils/constant.util';
 import { getBaseUrl, getFullUrl } from '../../utils/url.util';
 import { generateRandomString } from '../../utils/string.util';
 
@@ -11,7 +12,7 @@ const STATE_KEY = 'spotify_auth_state';
 
 // requests user authorization
 export const auth_login: RequestHandler = (req, res) => {
-  const redirectUri = `${getBaseUrl(req)}/callback`;
+  const redirectUri = getBaseUrl(req) + CALLBACK_PATH;
   const scope =
     'user-read-currently-playing user-read-recently-played user-top-read';
   const state = generateRandomString(16);

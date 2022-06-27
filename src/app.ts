@@ -4,10 +4,11 @@ import { engine } from 'express-handlebars';
 import { setupReactViews } from 'express-tsx-views';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
+import { setHttpCacheControlHeader } from './middleware/http-cache.middleware';
 import pageRouter from './routes/index.route';
 import authRouter from './routes/auth/index.route';
 import apiRouter from './routes/api/index.route';
-import { SITE_TITLE } from './utils/constant.util';
+import { API_PATH, AUTH_PATH, SITE_TITLE } from './utils/constant.util';
 
 // express app
 const app = express();
@@ -45,13 +46,16 @@ app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
+// custom middleware
+app.use(setHttpCacheControlHeader);
+
 // static files
 app.use(express.static(path.join(__dirname, 'public')));
 
 // routes
 app.use('/', pageRouter);
-app.use('/auth', authRouter);
-app.use('/api', apiRouter);
+app.use(AUTH_PATH, authRouter);
+app.use(API_PATH, apiRouter);
 app.use((_req, res) => res.sendStatus(404));
 
 export default app;

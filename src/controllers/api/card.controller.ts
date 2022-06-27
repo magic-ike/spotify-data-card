@@ -1,4 +1,5 @@
 import { RequestHandler, Response } from 'express';
+import { disableHttpCaching } from '../../middleware/http-cache.middleware';
 import TokenMap from '../../models/token-map.model';
 import User from '../../models/user.model';
 import CardGetRequestQueryParams from '../../interfaces/card-get-request-query-params.interface';
@@ -17,7 +18,7 @@ const CARD_VIEW_PATH = 'api/card.view.tsx';
 // renders a data card
 export const card_get: RequestHandler = async (req, res) => {
   // set content-type header to svg
-  res.setHeader('Content-Type', 'image/svg+xml');
+  res.header('Content-Type', 'image/svg+xml');
 
   // validate user id query param
   const cardReqBody = req.query as unknown as CardGetRequestQueryParams;
@@ -158,8 +159,10 @@ export const card_get: RequestHandler = async (req, res) => {
     }
   }
 
+  // disable http caching if real-time data is requested
+  if (showNowPlaying || showRecentlyPlayed) disableHttpCaching(res);
+
   // render data card
-  // TODO: add cache-control header?
   const imageDataMap = await User.getImageDataMapFromItems([
     nowPlaying,
     ...recentlyPlayed,
@@ -253,6 +256,7 @@ const renderErrorCard = (
   errorMessage: string,
   showBorder: boolean
 ) => {
+  disableHttpCaching(res);
   res.render(CARD_VIEW_PATH, { showBorder, errorMessage });
 };
 

@@ -27,7 +27,7 @@ const TOP_ARTISTS_ENDPOINT = `${PROFILE_ENDPOINT}/top/artists`;
 const DEFAULT_LIMIT = 20;
 
 // redis
-const DEFAULT_EXPIRATION = 86400; // 1 day
+const DEFAULT_EXPIRATION = 60 * 60 * 24; // 1 day
 
 export default class User {
   static getUserProfile(accessToken: string): Promise<UserProfileResponseBody> {
