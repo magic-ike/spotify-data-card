@@ -2,18 +2,18 @@ import { RequestHandler, Response } from 'express';
 import { disableHttpCaching } from '../../middleware/http-cache.middleware';
 import TokenMap from '../../models/token-map.model';
 import User from '../../models/user.model';
+import Image from '../../models/image.model';
 import CardGetRequestQueryParams from '../../interfaces/card-get-request-query-params.interface';
 import CardDeleteRequestQueryParams from '../../interfaces/card-delete-request-query-params.interface';
 import Track from '../../interfaces/track.interface';
 import Artist from '../../interfaces/artist.interface';
 import DataCardProps from '../../interfaces/data-card-props.interface';
-import { SHORT_URL } from '../../utils/constant.util';
+import { CARD_VIEW_PATH, SHORT_URL } from '../../utils/constant.util';
 import { boolFromString, boundedIntFromString } from '../../utils/string.util';
 
 const DEFAULT_ITEM_COUNT = 5;
 const MIN_ITEM_COUNT = 1;
 const MAX_ITEM_COUNT = 10;
-const CARD_VIEW_PATH = 'api/card.view.tsx';
 
 // renders a data card
 export const card_get: RequestHandler = async (req, res) => {
@@ -163,7 +163,7 @@ export const card_get: RequestHandler = async (req, res) => {
   if (showNowPlaying || showRecentlyPlayed) disableHttpCaching(res);
 
   // render data card
-  const imageDataMap = await User.getImageDataMapFromItems([
+  const imageDataMap = await Image.getImageDataMap([
     nowPlaying,
     ...recentlyPlayed,
     ...topTracks,
@@ -249,7 +249,7 @@ export const card_delete: RequestHandler = async (req, res) => {
   res.send('Data card deleted successfully.');
 };
 
-// helper functions
+// helpers
 
 const renderErrorCard = (
   res: Response,

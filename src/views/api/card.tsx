@@ -4,12 +4,12 @@ import pixelWidth from 'string-pixel-width';
 import DataCardProps from '../../interfaces/data-card-props.interface';
 import { Item, isTrack } from '../../interfaces/item.interface';
 import StringMap from '../../interfaces/map.interface';
-import { randomIntFromInterval } from '../../utils/number.util';
+import { randomIntFromIntervalInclusive } from '../../utils/number.util';
 import { getBase64DataFromImagePath } from '../../utils/image.util';
 import { SHORT_URL, SPOTIFY_WHITE_LOGO_PATH } from '../../utils/constant.util';
 
 // card dimensions
-const BORDER_WIDTH = 2;
+const BORDER_WIDTH = 3;
 const CARD_SPACING = 10;
 const CARD_TITLE_HEIGHT = 50;
 const CARD_SUBTITLE_HEIGHT = 45;
@@ -359,7 +359,7 @@ const SafeLink = ({
   );
 };
 
-// helper functions
+// helpers
 
 const isNowPlaying = (item: Item, rank?: number) => {
   return isTrack(item) && typeof rank === 'undefined';
@@ -406,7 +406,7 @@ const generateBarCSS = () => {
   let barCSS = '';
   let left = 0;
   for (let i = 1; i <= BAR_COUNT; i++) {
-    const anim = randomIntFromInterval(350, 500);
+    const anim = randomIntFromIntervalInclusive(350, 500);
     barCSS += `.bar:nth-child(${i}) { left: ${left}px; animation-duration: ${anim}ms; }`;
     left += BAR_SPACE;
   }

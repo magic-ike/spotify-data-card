@@ -7,19 +7,6 @@ const AUTH_CODE = 'authorization_code';
 const REFRESH_TOKEN = 'refresh_token';
 
 export default class Auth {
-  static getAccessTokenWithAuthCode(authCode: string, redirectUri: string) {
-    return this.#getAccessToken(AUTH_CODE, authCode, redirectUri);
-  }
-
-  static getAccessTokenWithRefreshToken(refreshToken: string) {
-    return this.#getAccessToken(
-      REFRESH_TOKEN,
-      undefined,
-      undefined,
-      refreshToken
-    );
-  }
-
   static #getAccessToken(
     grantType: typeof AUTH_CODE | typeof REFRESH_TOKEN,
     authCode?: string,
@@ -28,7 +15,7 @@ export default class Auth {
   ): Promise<AccessTokenResponseBody> {
     return new Promise(async (resolve, reject) => {
       // choose payload based on grant type
-      let data = {};
+      let data;
       if (grantType === AUTH_CODE) {
         data = {
           grant_type: grantType,
@@ -65,5 +52,18 @@ export default class Auth {
       // resolve with access token
       resolve(response.data);
     });
+  }
+
+  static getAccessTokenWithAuthCode(authCode: string, redirectUri: string) {
+    return this.#getAccessToken(AUTH_CODE, authCode, redirectUri);
+  }
+
+  static getAccessTokenWithRefreshToken(refreshToken: string) {
+    return this.#getAccessToken(
+      REFRESH_TOKEN,
+      undefined,
+      undefined,
+      refreshToken
+    );
   }
 }

@@ -4,31 +4,34 @@ import { engine } from 'express-handlebars';
 import { setupReactViews } from 'express-tsx-views';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
-import { setHttpCacheControlHeader } from './middleware/http-cache.middleware';
-import pageRouter from './routes/index.route';
-import authRouter from './routes/auth/index.route';
-import apiRouter from './routes/api/index.route';
-import { API_PATH, AUTH_PATH, SITE_TITLE } from './utils/constant.util';
+import router from './routes/index.route';
+import { HBS_HELPERS } from './config/index.config';
 
 // express app
 const app = express();
 
+/**
+ * proxies
+ *
+ * grabs the info provided by a reverse proxy if the express app is running behind one
+ */
+app.enable('trust proxy');
+
 // view engine: handlebars
 app.engine(
-  '.hbs',
+  'hbs',
   engine({
     extname: '.hbs',
-    defaultLayout: 'main.view.hbs',
-    helpers: {
-      siteTitle: SITE_TITLE,
-      areEqual: (a: any, b: any) => a === b
-    }
+    helpers: HBS_HELPERS
   })
 );
-app.set('view engine', '.hbs');
-app.set('views', path.join(__dirname, 'views'));
 
-// view engine: tsx
+/**
+ *  view engine: tsx
+ *
+ * `setupReactViews()` specifies the views directory, which all view engines will use,
+ * and registers tsx as the default view engine
+ */
 setupReactViews(app, {
   viewsDirectory: path.join(__dirname, 'views')
 });
@@ -46,16 +49,12 @@ app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-// custom middleware
-app.use(setHttpCacheControlHeader);
+// custom middleware should go here
 
 // static files
 app.use(express.static(path.join(__dirname, 'public')));
 
 // routes
-app.use('/', pageRouter);
-app.use(AUTH_PATH, authRouter);
-app.use(API_PATH, apiRouter);
-app.use((_req, res) => res.sendStatus(404));
+app.use(router);
 
 export default app;

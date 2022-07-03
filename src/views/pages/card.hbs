@@ -1,11 +1,11 @@
 <div class='column-view'>
-  {{#> button-row.view}}
+  {{#> button-row}}
       <button class='btn share-btn' onclick='copyCardPageLink()'>Copy Link</button>
       <button class='btn save-btn' onclick='saveCardSnapshot()'>Save Snapshot</button>
       <button class='btn home-btn' onclick='goToHomePage()'>Home Page</button>
-  {{/button-row.view}}
-  <div class='data-card-container horizontal-scroll'>
-    {{> loading-image.view}}
+  {{/button-row}}
+  <div class='horizontal-scroll data-card-container'>
+    {{> loading-image}}
     <object class='interactive-data-card' type='image/svg+xml'>
       <img class='data-card' alt='Data Card' />
     </object>

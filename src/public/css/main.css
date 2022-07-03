@@ -5,7 +5,6 @@
   margin: 0;
   border: 0;
   outline: 0;
-  /* background-color: inherit; */
   color: inherit;
   font-family: inherit;
   font-size: inherit;
@@ -17,16 +16,12 @@
   --spotify-green: #1db954;
   --spotify-black: #191414;
   --spotify-bg: #1ae68c;
-  /* --spotify-bg-dark: #222326; */
   --std-spacing: 3rem;
-  --content-width: 920px;
+  --content-max-width: 920px;
   --footer-height: 5rem;
-
-  /* btn vars */
   --btn-row-gap: 1rem;
   --btn-height: 3rem;
   --btn-outline-width: 6px;
-  --btn-hover-scale: 1.05;
 
   background-color: var(--spotify-black);
   color: var(--spotify-black);
@@ -42,22 +37,22 @@ a:hover {
   color: var(--spotify-green);
 }
 
-.main-view {
-  display: none;
-}
-
-.loading-view,
-.main-view {
-  background-color: var(--spotify-bg);
-}
-
-.container {
-  min-height: calc(100vh - var(--footer-height));
-  padding: var(--std-spacing);
+.column-view {
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
+}
+
+.container {
+  background-color: var(--spotify-bg);
+  min-height: calc(100vh - var(--footer-height));
+  padding: var(--std-spacing);
+}
+
+.main-view {
+  width: 100%;
+  display: none;
 }
 
 .title {
@@ -72,8 +67,8 @@ a:hover {
 }
 
 .content {
-  width: 100%;
-  max-width: var(--content-width);
+  margin: 0 auto;
+  max-width: var(--content-max-width);
 }
 
 .footer {
@@ -98,6 +93,15 @@ a:hover {
 }
 
 @media (max-width: 768px) {
+  :root {
+    --std-spacing: 2rem;
+    font-size: 14px;
+  }
+
+  .title {
+    font-size: 2.4rem;
+  }
+
   .spotify-logo {
     display: none;
   }
@@ -124,10 +128,7 @@ a:hover {
 
 /* common styles */
 
-.column-view {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+.content .column-view {
   gap: var(--std-spacing);
 }
 
@@ -141,12 +142,13 @@ a:hover {
   display: none;
 }
 
+.btn-row-container {
+  margin: calc(var(--btn-outline-width) * -1) 0;
+}
+
 .btn-row {
   width: fit-content;
-  height: calc(
-    calc(var(--btn-height) + calc(var(--btn-outline-width) * 2)) *
-      var(--btn-hover-scale)
-  );
+  height: calc(var(--btn-height) + calc(var(--btn-outline-width) * 2));
   margin: 0 auto;
   display: flex;
   gap: var(--btn-row-gap);
@@ -160,7 +162,7 @@ a:hover {
 }
 
 .btn-row > * {
-  margin: auto 0; /* using `align-items: center;` for vertical centering breaks the spacing on the right */
+  align-self: center; /* using `align-items: center;` on the flex box for vertical centering breaks the spacing on the right */
   flex-shrink: 0;
 }
 
@@ -171,12 +173,11 @@ a:hover {
   padding: 0 2rem;
   border-radius: calc(var(--btn-height) / 2);
   box-shadow: 0 0 0 var(--btn-outline-width) transparent;
-  transition: box-shadow 0.3s ease;
 }
 
 .btn:enabled:hover {
   cursor: pointer;
-  transform: scale(var(--btn-hover-scale));
+  transform: scale(1.05);
 }
 
 .btn:enabled:active {

@@ -40,28 +40,24 @@
     ></script>
     <script src='js/main.js' defer></script>
 
-    {{#if (areEqual @exphbs.view 'home/index.view')}}
+    {{#if (areEqual @exphbs.view (homePageView))}}
       <script src='js/home.js' defer></script>
-    {{/if}}
-
-    {{#if (areEqual @exphbs.view 'card/index.view')}}
+    {{else if (areEqual @exphbs.view (cardPageView))}}
       <script src='https://momentjs.com/downloads/moment.js' defer></script>
       <script src='js/card.js' defer></script>
     {{/if}}
 
   </head>
   <body>
-    {{> loading-view.view}}
-    <div class="main-view">
-      <div class='container'>
+    <div class="column-view container">
+      {{> loading-view}}
+      <div class="main-view">
         <h1 class='title'>{{siteTitle}}</h1>
         <p class='subtitle'>
 
-          {{#if (areEqual @exphbs.view 'home/index.view')}}
+          {{#if (areEqual @exphbs.view (homePageView))}}
             {{pageDescription}}
-          {{/if}}
-
-          {{#if (areEqual @exphbs.view 'card/index.view')}}
+          {{else if (areEqual @exphbs.view (cardPageView))}}
             Card View
           {{/if}}
 

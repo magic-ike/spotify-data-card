@@ -16,7 +16,6 @@ export const auth_login: RequestHandler = (req, res) => {
   const scope =
     'user-read-currently-playing user-read-recently-played user-top-read';
   const state = generateRandomString(16);
-
   res.cookie(STATE_KEY, state, { httpOnly: true });
   res.redirect(
     'https://accounts.spotify.com/authorize?' +
@@ -91,7 +90,7 @@ export const auth_callback: RequestHandler = async (req, res) => {
   redirectToHomePageWithCreds(res, userId, refreshToken);
 };
 
-// helper functions
+// helpers
 
 const redirectToHomePageWithError = (res: Response, error: string) => {
   res.redirect('/#' + stringify({ error }));

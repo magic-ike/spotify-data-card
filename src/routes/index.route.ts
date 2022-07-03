@@ -1,12 +1,14 @@
 import express from 'express';
-import homePageRouter from './home-page.route';
-import cardPageRouter from './card-page.route';
-import { CARD_PATH } from '../utils/constant.util';
+import pageRouter from '../routes/pages/index.route';
+import authRouter from '../routes/auth/index.route';
+import apiRouter from '../routes/api/index.route';
+import { API_PATH, AUTH_PATH } from '../utils/constant.util';
 
-const pageRouter = express.Router();
+const router = express.Router();
 
-// every page should have its own router and controller
-pageRouter.use('/', homePageRouter);
-pageRouter.use(CARD_PATH, cardPageRouter);
+router.use('/', pageRouter);
+router.use(AUTH_PATH, authRouter);
+router.use(API_PATH, apiRouter);
+router.use((_req, res) => res.sendStatus(404));
 
-export default pageRouter;
+export default router;

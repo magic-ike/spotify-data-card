@@ -5,7 +5,12 @@ export const LOGIN_PATH = '/login';
 export const CALLBACK_PATH = '/callback';
 export const API_PATH = '/api';
 
-// other
+// views
+export const HOME_PAGE_VIEW_PATH = 'pages/home';
+export const CARD_PAGE_VIEW_PATH = 'pages/card';
+export const CARD_VIEW_PATH = 'api/card';
+
+// misc
 export const SITE_TITLE = 'Spotify Data Card';
 export const SHORT_URL = 'iodev.io/s-d-c';
 export const SPOTIFY_WHITE_LOGO_PATH = '/images/Spotify_Logo_RGB_White.png';

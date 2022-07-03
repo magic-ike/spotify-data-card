@@ -1,13 +1,8 @@
 import { model, Schema } from 'mongoose';
-import { redisClient } from '../server';
+import Redis from '../models/redis.model';
 import Auth from './auth.model';
 import ITokenMap from '../interfaces/token-map.interface';
 import { msFromDateString } from '../utils/string.util';
-import {
-  getProfileCacheKey,
-  getTokenMapCacheKey,
-  getTopItemCacheDeletionScript
-} from '../utils/cache.util';
 
 const tokenMapSchema = new Schema<ITokenMap>(
   {
@@ -45,9 +40,9 @@ export default class TokenMap extends MongoTokenMap {
     expiresIn: number
   ): Promise<ITokenMap> {
     return new Promise(async (resolve, reject) => {
-      let tokenMap: ITokenMap;
+      let tokenMap;
       try {
-        tokenMap = await this.findOneAndUpdate(
+        tokenMap = await this.findOneAndUpdate<ITokenMap>(
           { userId },
           {
             userId,
@@ -71,9 +66,9 @@ export default class TokenMap extends MongoTokenMap {
 
   static getTokenMap(userId: string): Promise<ITokenMap> {
     return new Promise(async (resolve, reject) => {
-      let tokenMap: ITokenMap | null;
+      let tokenMap;
       try {
-        tokenMap = await this.findOne({ userId }).exec();
+        tokenMap = await this.findOne<ITokenMap>({ userId }).exec();
       } catch (error) {
         reject((error as Error).message);
         return;
@@ -92,9 +87,9 @@ export default class TokenMap extends MongoTokenMap {
     expiresIn: number
   ): Promise<ITokenMap> {
     return new Promise(async (resolve, reject) => {
-      let tokenMap: ITokenMap | null;
+      let tokenMap;
       try {
-        tokenMap = await this.findOneAndUpdate(
+        tokenMap = await this.findOneAndUpdate<ITokenMap>(
           { userId },
           {
             accessToken,
@@ -117,9 +112,9 @@ export default class TokenMap extends MongoTokenMap {
 
   static deleteTokenMap(userId: string): Promise<ITokenMap> {
     return new Promise(async (resolve, reject) => {
-      let tokenMap: ITokenMap | null;
+      let tokenMap;
       try {
-        tokenMap = await this.findOneAndDelete({ userId }).exec();
+        tokenMap = await this.findOneAndDelete<ITokenMap>({ userId }).exec();
       } catch (error) {
         reject((error as Error).message);
         return;
@@ -132,10 +127,7 @@ export default class TokenMap extends MongoTokenMap {
 
       // delete from cache
       try {
-        await redisClient.del(getTokenMapCacheKey(userId));
-        await redisClient.del(getProfileCacheKey(userId));
-        await redisClient.eval(getTopItemCacheDeletionScript(userId, 'Track'));
-        await redisClient.eval(getTopItemCacheDeletionScript(userId, 'Artist'));
+        await Redis.deleteTokenMapAndUserDataFromCache(userId);
       } catch (error) {
         console.log(error);
       }
@@ -148,11 +140,9 @@ export default class TokenMap extends MongoTokenMap {
 TokenMap.getLatestAccessToken = function (userId: string): Promise<string> {
   return new Promise(async (resolve, reject) => {
     // attempt to fetch token map from cache
-    let cachedTokenMap: ITokenMap | null = null;
+    let cachedTokenMap = null;
     try {
-      cachedTokenMap = JSON.parse(
-        (await redisClient.get(getTokenMapCacheKey(userId))) || 'null'
-      );
+      cachedTokenMap = await Redis.getTokenMapFromCache(userId);
     } catch (error) {
       console.log(error);
     }
@@ -160,7 +150,7 @@ TokenMap.getLatestAccessToken = function (userId: string): Promise<string> {
     // fetch token map from db if necessary
     let tokenMap;
     let cacheHit = false;
-    if (cachedTokenMap !== null) {
+    if (cachedTokenMap) {
       cachedTokenMap.accessTokenExpiresAt = msFromDateString(
         cachedTokenMap.accessTokenExpiresAt as string
       );
@@ -213,10 +203,10 @@ TokenMap.getLatestAccessToken = function (userId: string): Promise<string> {
   });
 };
 
-// helper functions
+// helpers
 
 const saveTokenMapToCache = (userId: string, tokenMap: ITokenMap) => {
-  redisClient
-    .set(getTokenMapCacheKey(userId), JSON.stringify(tokenMap))
-    .catch((error) => console.log(error));
+  Redis.saveTokenMapToCache(userId, tokenMap).catch((error) =>
+    console.log(error)
+  );
 };

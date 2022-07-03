@@ -1,5 +1,22 @@
+import {
+  SITE_TITLE,
+  HOME_PAGE_VIEW_PATH,
+  CARD_PAGE_VIEW_PATH
+} from '../utils/constant.util';
+
+// server
 export const PORT = process.env.PORT || 8080;
+export const HBS_HELPERS = {
+  siteTitle: () => SITE_TITLE,
+  homePageView: () => HOME_PAGE_VIEW_PATH,
+  cardPageView: () => CARD_PAGE_VIEW_PATH,
+  areEqual: (a: any, b: any) => a === b
+};
+
+// spotify
 export const CLIENT_ID = process.env.SPOTIFY_CLIENT_ID!;
 export const CLIENT_SECRET = process.env.SPOTIFY_CLIENT_SECRET!;
-export const MONGODB_URI = process.env.MONGODB_CONNECTION_STRING!;
-export const REDIS_URI = process.env.REDIS_CONNECTION_STRING!;
+
+// db
+export const MONGODB_URI = process.env.MONGODB_URI!;
+export const REDIS_URI = process.env.REDIS_URI!;

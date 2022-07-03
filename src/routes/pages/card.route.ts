@@ -1,5 +1,5 @@
 import express from 'express';
-import { card_index } from '../controllers/card-page.controller';
+import { card_index } from '../../controllers/pages/card.controller';
 
 const cardPageRouter = express.Router();
 

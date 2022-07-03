@@ -1,7 +1,11 @@
 import { RequestHandler } from 'express';
-import { HbsViewProps } from '../interfaces/hbs-view-props.interface';
-import { SITE_TITLE, SPOTIFY_ICON_PATH } from '../utils/constant.util';
-import { getFullUrl, getUrl } from '../utils/url.util';
+import { HbsViewProps } from '../../interfaces/hbs-view-props.interface';
+import {
+  SITE_TITLE,
+  HOME_PAGE_VIEW_PATH,
+  SPOTIFY_ICON_PATH
+} from '../../utils/constant.util';
+import { getFullUrl, getUrl } from '../../utils/url.util';
 
 export const index: RequestHandler = (req, res) => {
   const siteUrl = getUrl(req);
@@ -12,5 +16,5 @@ export const index: RequestHandler = (req, res) => {
     pageUrl,
     siteImage: siteUrl + SPOTIFY_ICON_PATH
   };
-  res.render('home/index.view.hbs', { ...props });
+  res.render(HOME_PAGE_VIEW_PATH + '.hbs', { ...props });
 };

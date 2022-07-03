@@ -1,5 +1,5 @@
 import axios, { AxiosError } from 'axios';
-import { redisClient, getFromOrSaveToCache } from '../server';
+import Redis from './redis.model';
 import UserProfileResponseBody from '../interfaces/user-profile-response-body.interface';
 import CurrentlyPlayingResponseBody from '../interfaces/currently-playing-response-body.interface';
 import RecentlyPlayedResponseBody from '../interfaces/recently-played-response-body.interface';
@@ -8,17 +8,7 @@ import TrackResponseBody from '../interfaces/track-response-body.interface';
 import ArtistResponseBody from '../interfaces/artist-response-body.interface';
 import Track from '../interfaces/track.interface';
 import Artist from '../interfaces/artist.interface';
-import { Item, isTrack } from '../interfaces/item.interface';
-import StringMap from '../interfaces/map.interface';
-import { getBase64DataFromImageUrl } from '../utils/image.util';
-import {
-  getImagesCacheKey,
-  getProfileCacheKey,
-  getTopArtistsCacheKey,
-  getTopTracksCacheKey
-} from '../utils/cache.util';
 
-// mongo
 const PROFILE_ENDPOINT = 'https://api.spotify.com/v1/me';
 const NOW_PLAYING_ENDPOINT = `${PROFILE_ENDPOINT}/player/currently-playing`;
 const RECENTLY_PLAYED_ENDPOINT = `${PROFILE_ENDPOINT}/player/recently-played`;
@@ -26,34 +16,54 @@ const TOP_TRACKS_ENDPOINT = `${PROFILE_ENDPOINT}/top/tracks`;
 const TOP_ARTISTS_ENDPOINT = `${PROFILE_ENDPOINT}/top/artists`;
 const DEFAULT_LIMIT = 20;
 
-// redis
-const DEFAULT_EXPIRATION = 60 * 60 * 24; // 1 day
-
 export default class User {
-  static getUserProfile(accessToken: string): Promise<UserProfileResponseBody> {
+  static getUserProfile(
+    accessToken: string,
+    userId?: string
+  ): Promise<UserProfileResponseBody> {
     return new Promise(async (resolve, reject) => {
-      let response;
-      try {
-        response = await axios.get<UserProfileResponseBody>(PROFILE_ENDPOINT, {
-          headers: {
-            Authorization: `Bearer ${accessToken}`
-          }
-        });
-      } catch (error) {
-        reject((error as AxiosError).message);
-        return;
+      // attempt to fetch profile from cache
+      let cachedProfile = null;
+      if (userId) {
+        try {
+          cachedProfile = await Redis.getUserProfileFromCache(userId);
+        } catch (error) {
+          console.log(error);
+        }
       }
-      const { id: userId, display_name }: UserProfileResponseBody =
-        response.data;
-      const profile = { id: userId, display_name };
+
+      // fetch profile from spotify api if necessary
+      let profile;
+      let fetchedUserId = null;
+      if (cachedProfile !== null) {
+        profile = cachedProfile;
+      } else {
+        let response;
+        try {
+          response = await axios.get<UserProfileResponseBody>(
+            PROFILE_ENDPOINT,
+            {
+              headers: {
+                Authorization: `Bearer ${accessToken}`
+              }
+            }
+          );
+        } catch (error) {
+          reject((error as AxiosError).message);
+          return;
+        }
+        const { id, display_name } = response.data;
+        profile = { id, display_name };
+        fetchedUserId = id;
+      }
+
+      // resolve with profile
       resolve(profile);
 
-      // save to cache
+      // save profile to cache if necessary
+      if (fetchedUserId === null) return;
       try {
-        await redisClient.set(
-          getProfileCacheKey(userId),
-          JSON.stringify(profile)
-        );
+        await Redis.saveUserProfileToCache(fetchedUserId, profile);
       } catch (error) {
         console.log(error);
       }
@@ -160,8 +170,10 @@ export default class User {
     hideExplicit: boolean,
     limit: number
   ): Promise<Track[]> {
-    return getFromOrSaveToCache(
-      getTopTracksCacheKey(userId, hideExplicit, limit),
+    return Redis.getTopTracksFromOrSaveToCache(
+      userId,
+      hideExplicit,
+      limit,
       () => {
         return new Promise(async (resolve, reject) => {
           // fetch top tracks
@@ -204,8 +216,7 @@ export default class User {
             }))
           );
         });
-      },
-      DEFAULT_EXPIRATION
+      }
     );
   }
 
@@ -214,55 +225,34 @@ export default class User {
     accessToken: string,
     limit: number
   ): Promise<Artist[]> {
-    return getFromOrSaveToCache(
-      getTopArtistsCacheKey(userId, limit),
-      () => {
-        return new Promise(async (resolve, reject) => {
-          // fetch top artists
-          let response;
-          try {
-            response = await axios.get<TopItemsResponseBody>(
-              `${TOP_ARTISTS_ENDPOINT}?limit=${limit}`,
-              {
-                headers: {
-                  Authorization: `Bearer ${accessToken}`
-                }
+    return Redis.getTopArtistsFromOrSaveToCache(userId, limit, () => {
+      return new Promise(async (resolve, reject) => {
+        // fetch top artists
+        let response;
+        try {
+          response = await axios.get<TopItemsResponseBody>(
+            `${TOP_ARTISTS_ENDPOINT}?limit=${limit}`,
+            {
+              headers: {
+                Authorization: `Bearer ${accessToken}`
               }
-            );
-          } catch (error) {
-            reject((error as AxiosError).message);
-            return;
-          }
-
-          // resolve with artists
-          const artistDataArray = response.data.items as ArtistResponseBody[];
-          resolve(
-            artistDataArray.map((artistData) => ({
-              name: artistData.name,
-              imageUrl: artistData.images[2].url,
-              url: artistData.external_urls.spotify
-            }))
+            }
           );
-        });
-      },
-      DEFAULT_EXPIRATION
-    );
-  }
-
-  static getImageDataMapFromItems = async (items: Item[]) => {
-    const map: StringMap = {};
-    for (const item of items) {
-      if (!item) continue;
-      const imageUrl = isTrack(item) ? item.albumImageUrl : item.imageUrl;
-      const imageUrlArray = imageUrl.split('/');
-      const imageId = imageUrlArray[imageUrlArray.length - 1];
-      map[imageUrl] = await getFromOrSaveToCache(
-        getImagesCacheKey(imageId),
-        () => {
-          return getBase64DataFromImageUrl(imageUrl);
+        } catch (error) {
+          reject((error as AxiosError).message);
+          return;
         }
-      );
-    }
-    return map;
-  };
+
+        // resolve with artists
+        const artistDataArray = response.data.items as ArtistResponseBody[];
+        resolve(
+          artistDataArray.map((artistData) => ({
+            name: artistData.name,
+            imageUrl: artistData.images[2].url,
+            url: artistData.external_urls.spotify
+          }))
+        );
+      });
+    });
+  }
 }
