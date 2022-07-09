@@ -1,5 +1,6 @@
 import request from 'supertest';
-import app from '../../../src/app';
+// @ts-ignore
+import app from '../../../dist/app';
 
 describe('GET /', () => {
   let response: request.Response;

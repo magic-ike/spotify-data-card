@@ -7,51 +7,48 @@ const AUTH_CODE = 'authorization_code';
 const REFRESH_TOKEN = 'refresh_token';
 
 export default class Auth {
-  static #getAccessToken(
+  static async #getAccessToken(
     grantType: typeof AUTH_CODE | typeof REFRESH_TOKEN,
     authCode?: string,
     redirectUri?: string,
     refreshToken?: string
   ): Promise<AccessTokenResponseBody> {
-    return new Promise(async (resolve, reject) => {
-      // choose payload based on grant type
-      let data;
-      if (grantType === AUTH_CODE) {
-        data = {
-          grant_type: grantType,
-          code: authCode,
-          redirect_uri: redirectUri
-        };
-      } else {
-        data = {
-          grant_type: grantType,
-          refresh_token: refreshToken
-        };
-      }
+    // choose payload based on grant type
+    let data;
+    if (grantType === AUTH_CODE) {
+      data = {
+        grant_type: grantType,
+        code: authCode,
+        redirect_uri: redirectUri
+      };
+    } else {
+      data = {
+        grant_type: grantType,
+        refresh_token: refreshToken
+      };
+    }
 
-      // fetch access token
-      let response;
-      try {
-        response = await axios.post<AccessTokenResponseBody>(
-          'https://accounts.spotify.com/api/token',
-          stringify(data),
-          {
-            headers: {
-              Authorization: `Basic ${Buffer.from(
-                `${CLIENT_ID}:${CLIENT_SECRET}`
-              ).toString('base64')}`,
-              'Content-Type': 'application/x-www-form-urlencoded'
-            }
+    // fetch access token
+    let response;
+    try {
+      response = await axios.post<AccessTokenResponseBody>(
+        'https://accounts.spotify.com/api/token',
+        stringify(data),
+        {
+          headers: {
+            Authorization: `Basic ${Buffer.from(
+              `${CLIENT_ID}:${CLIENT_SECRET}`
+            ).toString('base64')}`,
+            'Content-Type': 'application/x-www-form-urlencoded'
           }
-        );
-      } catch (error) {
-        reject((error as AxiosError).message);
-        return;
-      }
+        }
+      );
+    } catch (error) {
+      throw (error as AxiosError).message;
+    }
 
-      // resolve with access token
-      resolve(response.data);
-    });
+    // resolve with access token
+    return response.data;
   }
 
   static getAccessTokenWithAuthCode(authCode: string, redirectUri: string) {

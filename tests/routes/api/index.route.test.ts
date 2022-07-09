@@ -1,6 +1,8 @@
 import request from 'supertest';
-import app from '../../../src/app';
-import { API_PATH } from '../../../src/utils/constant.util';
+// @ts-ignore
+import app from '../../../dist/app';
+// @ts-ignore
+import { API_PATH } from '../../../dist/utils/constant.util';
 
 describe(`GET ${API_PATH}`, () => {
   let response: request.Response;

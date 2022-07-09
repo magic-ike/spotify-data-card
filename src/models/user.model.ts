@@ -17,154 +17,138 @@ const TOP_ARTISTS_ENDPOINT = `${PROFILE_ENDPOINT}/top/artists`;
 const DEFAULT_LIMIT = 20;
 
 export default class User {
-  static getUserProfile(
+  static async getUserProfile(
     accessToken: string,
     userId?: string
   ): Promise<UserProfileResponseBody> {
-    return new Promise(async (resolve, reject) => {
-      // attempt to fetch profile from cache
-      let cachedProfile = null;
-      if (userId) {
-        try {
-          cachedProfile = await Redis.getUserProfileFromCache(userId);
-        } catch (error) {
-          console.log(error);
-        }
-      }
-
-      // fetch profile from spotify api if necessary
-      let profile;
-      let fetchedUserId = null;
-      if (cachedProfile !== null) {
-        profile = cachedProfile;
-      } else {
-        let response;
-        try {
-          response = await axios.get<UserProfileResponseBody>(
-            PROFILE_ENDPOINT,
-            {
-              headers: {
-                Authorization: `Bearer ${accessToken}`
-              }
-            }
-          );
-        } catch (error) {
-          reject((error as AxiosError).message);
-          return;
-        }
-        const { id, display_name } = response.data;
-        profile = { id, display_name };
-        fetchedUserId = id;
-      }
-
-      // resolve with profile
-      resolve(profile);
-
-      // save profile to cache if necessary
-      if (fetchedUserId === null) return;
+    // attempt to fetch profile from cache
+    let cachedProfile = null;
+    if (userId) {
       try {
-        await Redis.saveUserProfileToCache(fetchedUserId, profile);
+        cachedProfile = await Redis.getUserProfileFromCache(userId);
       } catch (error) {
         console.log(error);
       }
-    });
+    }
+
+    // fetch profile from spotify api if necessary
+    let profile;
+    let fetchedUserId = null;
+    if (cachedProfile !== null) {
+      profile = cachedProfile;
+    } else {
+      let response;
+      try {
+        response = await axios.get<UserProfileResponseBody>(PROFILE_ENDPOINT, {
+          headers: {
+            Authorization: `Bearer ${accessToken}`
+          }
+        });
+      } catch (error) {
+        throw (error as AxiosError).message;
+      }
+      const { id, display_name } = response.data;
+      profile = { id, display_name };
+      fetchedUserId = id;
+    }
+
+    // save profile to cache if necessary (no await)
+    if (fetchedUserId !== null) {
+      Redis.saveUserProfileToCache(fetchedUserId, profile).catch((error) =>
+        console.log(error)
+      );
+    }
+
+    // resolve with profile
+    return profile;
   }
 
-  static getNowPlaying(
+  static async getNowPlaying(
     accessToken: string,
     hideExplicit: boolean
   ): Promise<Track | null> {
-    return new Promise(async (resolve, reject) => {
-      // fetch currently playing track
-      let response;
-      try {
-        response = await axios.get<CurrentlyPlayingResponseBody>(
-          NOW_PLAYING_ENDPOINT,
-          {
-            headers: {
-              Authorization: `Bearer ${accessToken}`
-            }
+    // fetch currently playing track
+    let response;
+    try {
+      response = await axios.get<CurrentlyPlayingResponseBody>(
+        NOW_PLAYING_ENDPOINT,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`
           }
-        );
-      } catch (error) {
-        reject((error as AxiosError).message);
-        return;
-      }
+        }
+      );
+    } catch (error) {
+      throw (error as AxiosError).message;
+    }
 
-      // check if a track can be shown
-      const data = response.data;
-      if (
-        !data ||
-        !data.item ||
-        !data.is_playing ||
-        (hideExplicit && data.item.explicit)
-      ) {
-        resolve(null);
-        return;
-      }
+    // check if a track can be shown
+    const data = response.data;
+    if (
+      !data ||
+      !data.item ||
+      !data.is_playing ||
+      (hideExplicit && data.item.explicit)
+    ) {
+      return null;
+    }
 
-      // resolve with track
-      const trackData = data.item;
-      resolve({
-        title: trackData.name,
-        artist: trackData.artists.map((_artist) => _artist.name).join(', '),
-        albumTitle: trackData.album.name,
-        albumImageUrl: trackData.album.images[2].url,
-        explicit: trackData.explicit,
-        url: trackData.external_urls.spotify
-      });
-    });
+    // resolve with track
+    const trackData = data.item;
+    return {
+      title: trackData.name,
+      artist: trackData.artists.map((_artist) => _artist.name).join(', '),
+      albumTitle: trackData.album.name,
+      albumImageUrl: trackData.album.images[2].url,
+      explicit: trackData.explicit,
+      url: trackData.external_urls.spotify
+    };
   }
 
-  static getRecentlyPlayed(
+  static async getRecentlyPlayed(
     accessToken: string,
     hideExplicit: boolean,
     limit: number
   ): Promise<Track[]> {
-    return new Promise(async (resolve, reject) => {
-      // fetch recently played tracks
-      let response;
-      try {
-        response = await axios.get<RecentlyPlayedResponseBody>(
-          `${RECENTLY_PLAYED_ENDPOINT}?limit=${
-            hideExplicit ? DEFAULT_LIMIT : limit
-          }`,
-          {
-            headers: {
-              Authorization: `Bearer ${accessToken}`
-            }
+    // fetch recently played tracks
+    let response;
+    try {
+      response = await axios.get<RecentlyPlayedResponseBody>(
+        `${RECENTLY_PLAYED_ENDPOINT}?limit=${
+          hideExplicit ? DEFAULT_LIMIT : limit
+        }`,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`
           }
-        );
-      } catch (error) {
-        reject((error as AxiosError).message);
-        return;
-      }
-
-      // hide explicit tracks if necessary
-      let trackDataArray = response.data.items.map(
-        (item) => item.track
-      ) as TrackResponseBody[];
-      if (hideExplicit) {
-        trackDataArray = trackDataArray.filter(
-          (trackData) => !trackData.explicit
-        );
-      }
-
-      // resolve with tracks
-      resolve(
-        trackDataArray.slice(0, limit).map((trackData) => ({
-          title: trackData.name,
-          artist: trackData.artists.map((_artist) => _artist.name).join(', '),
-          albumTitle: trackData.album.name,
-          albumImageUrl: trackData.album.images[2].url,
-          explicit: trackData.explicit,
-          url: trackData.external_urls.spotify
-        }))
+        }
       );
-    });
+    } catch (error) {
+      throw (error as AxiosError).message;
+    }
+
+    // hide explicit tracks if necessary
+    let trackDataArray = response.data.items.map(
+      (item) => item.track
+    ) as TrackResponseBody[];
+    if (hideExplicit) {
+      trackDataArray = trackDataArray.filter(
+        (trackData) => !trackData.explicit
+      );
+    }
+
+    // resolve with tracks
+    return trackDataArray.slice(0, limit).map((trackData) => ({
+      title: trackData.name,
+      artist: trackData.artists.map((_artist) => _artist.name).join(', '),
+      albumTitle: trackData.album.name,
+      albumImageUrl: trackData.album.images[2].url,
+      explicit: trackData.explicit,
+      url: trackData.external_urls.spotify
+    }));
   }
 
-  static getTopTracks(
+  static async getTopTracks(
     userId: string,
     accessToken: string,
     hideExplicit: boolean,
@@ -174,64 +158,14 @@ export default class User {
       userId,
       hideExplicit,
       limit,
-      () => {
-        return new Promise(async (resolve, reject) => {
-          // fetch top tracks
-          let response;
-          try {
-            response = await axios.get<TopItemsResponseBody>(
-              `${TOP_TRACKS_ENDPOINT}?limit=${
-                hideExplicit ? DEFAULT_LIMIT : limit
-              }`,
-              {
-                headers: {
-                  Authorization: `Bearer ${accessToken}`
-                }
-              }
-            );
-          } catch (error) {
-            reject((error as AxiosError).message);
-            return;
-          }
-
-          // hide explicit tracks if necessary
-          let trackDataArray = response.data.items as TrackResponseBody[];
-          if (hideExplicit) {
-            trackDataArray = trackDataArray.filter(
-              (trackData) => !trackData.explicit
-            );
-          }
-
-          // resolve with tracks
-          resolve(
-            trackDataArray.slice(0, limit).map((trackData) => ({
-              title: trackData.name,
-              artist: trackData.artists
-                .map((_artist) => _artist.name)
-                .join(', '),
-              albumTitle: trackData.album.name,
-              albumImageUrl: trackData.album.images[2].url,
-              explicit: trackData.explicit,
-              url: trackData.external_urls.spotify
-            }))
-          );
-        });
-      }
-    );
-  }
-
-  static getTopArtists(
-    userId: string,
-    accessToken: string,
-    limit: number
-  ): Promise<Artist[]> {
-    return Redis.getTopArtistsFromOrSaveToCache(userId, limit, () => {
-      return new Promise(async (resolve, reject) => {
-        // fetch top artists
+      async () => {
+        // fetch top tracks
         let response;
         try {
           response = await axios.get<TopItemsResponseBody>(
-            `${TOP_ARTISTS_ENDPOINT}?limit=${limit}`,
+            `${TOP_TRACKS_ENDPOINT}?limit=${
+              hideExplicit ? DEFAULT_LIMIT : limit
+            }`,
             {
               headers: {
                 Authorization: `Bearer ${accessToken}`
@@ -239,20 +173,58 @@ export default class User {
             }
           );
         } catch (error) {
-          reject((error as AxiosError).message);
-          return;
+          throw (error as AxiosError).message;
         }
 
-        // resolve with artists
-        const artistDataArray = response.data.items as ArtistResponseBody[];
-        resolve(
-          artistDataArray.map((artistData) => ({
-            name: artistData.name,
-            imageUrl: artistData.images[2].url,
-            url: artistData.external_urls.spotify
-          }))
+        // hide explicit tracks if necessary
+        let trackDataArray = response.data.items as TrackResponseBody[];
+        if (hideExplicit) {
+          trackDataArray = trackDataArray.filter(
+            (trackData) => !trackData.explicit
+          );
+        }
+
+        // resolve with tracks
+        return trackDataArray.slice(0, limit).map((trackData) => ({
+          title: trackData.name,
+          artist: trackData.artists.map((_artist) => _artist.name).join(', '),
+          albumTitle: trackData.album.name,
+          albumImageUrl: trackData.album.images[2].url,
+          explicit: trackData.explicit,
+          url: trackData.external_urls.spotify
+        }));
+      }
+    );
+  }
+
+  static async getTopArtists(
+    userId: string,
+    accessToken: string,
+    limit: number
+  ): Promise<Artist[]> {
+    return Redis.getTopArtistsFromOrSaveToCache(userId, limit, async () => {
+      // fetch top artists
+      let response;
+      try {
+        response = await axios.get<TopItemsResponseBody>(
+          `${TOP_ARTISTS_ENDPOINT}?limit=${limit}`,
+          {
+            headers: {
+              Authorization: `Bearer ${accessToken}`
+            }
+          }
         );
-      });
+      } catch (error) {
+        throw (error as AxiosError).message;
+      }
+
+      // resolve with artists
+      const artistDataArray = response.data.items as ArtistResponseBody[];
+      return artistDataArray.map((artistData) => ({
+        name: artistData.name,
+        imageUrl: artistData.images[2].url,
+        url: artistData.external_urls.spotify
+      }));
     });
   }
 }

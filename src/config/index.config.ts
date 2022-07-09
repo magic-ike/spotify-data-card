@@ -10,7 +10,7 @@ export const HBS_HELPERS = {
   siteTitle: () => SITE_TITLE,
   homePageView: () => HOME_PAGE_VIEW_PATH,
   cardPageView: () => CARD_PAGE_VIEW_PATH,
-  areEqual: (a: any, b: any) => a === b
+  areEqual: (a: string, b: string) => a === b
 };
 
 // spotify

@@ -10,7 +10,8 @@
     "lint": "eslint . --ext .ts",
     "lint:fix": "eslint . --ext .ts --fix",
     "test": "jest",
-    "test:coverage": "jest --coverage"
+    "test:coverage": "jest --coverage",
+    "heroku-postbuild": "yarn lint && yarn build && yarn test"
   },
   "keywords": [],
   "author": "Ike Ofoegbu",

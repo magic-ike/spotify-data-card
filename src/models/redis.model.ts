@@ -19,47 +19,37 @@ export default class Redis {
 
   static #client = createClient({ url: REDIS_URI });
 
-  static #getFromOrSaveToCache<T>(
+  static async #getFromOrSaveToCache<T>(
     key: string,
     fallbackFunction: Function,
     expiration?: number
   ): Promise<T> {
-    return new Promise(async (resolve, reject) => {
-      // attempt to fetch from cache
-      let data = null;
-      try {
-        data = await this.#client.get(key);
-      } catch (error) {
-        // don't reject
-        console.log(error);
-      }
-      if (data) {
-        resolve(JSON.parse(data));
-        return;
-      }
+    // attempt to fetch from cache
+    let data = null;
+    try {
+      data = await this.#client.get(key);
+    } catch (error) {
+      // don't throw
+      console.log(error);
+    }
+    if (data) {
+      return JSON.parse(data);
+    }
 
-      // run fallback function
-      let freshData;
-      try {
-        freshData = await fallbackFunction();
-      } catch (error) {
-        reject(error);
-        return;
-      }
-      resolve(freshData);
+    // run fallback function
+    const freshData = await fallbackFunction();
 
-      // save to cache
-      try {
-        if (typeof expiration === 'number') {
-          await this.#client.setEx(key, expiration, JSON.stringify(freshData));
-        } else {
-          await this.#client.set(key, JSON.stringify(freshData));
-        }
-      } catch (error) {
-        // don't reject
-        console.log(error);
-      }
-    });
+    // save to cache (no await)
+    if (typeof expiration === 'number') {
+      this.#client
+        .setEx(key, expiration, JSON.stringify(freshData))
+        .catch((error) => error);
+    } else {
+      this.#client.set(key, JSON.stringify(freshData)).catch((error) => error);
+    }
+
+    // resolve with fresh data
+    return freshData;
   }
 
   // connection
@@ -70,35 +60,16 @@ export default class Redis {
 
   // token maps
 
-  static saveTokenMapToCache(
-    userId: string,
-    tokenMap: ITokenMap
-  ): Promise<void> {
-    return new Promise(async (resolve, reject) => {
-      try {
-        await this.#client.set(
-          getTokenMapCacheKey(userId),
-          JSON.stringify(tokenMap)
-        );
-      } catch (error) {
-        reject(error);
-        return;
-      }
-      resolve();
-    });
+  static saveTokenMapToCache(userId: string, tokenMap: ITokenMap) {
+    return this.#client.set(
+      getTokenMapCacheKey(userId),
+      JSON.stringify(tokenMap)
+    );
   }
 
-  static getTokenMapFromCache(userId: string): Promise<ITokenMap> {
-    return new Promise(async (resolve, reject) => {
-      let tokenMap;
-      try {
-        tokenMap = await this.#client.get(getTokenMapCacheKey(userId));
-      } catch (error) {
-        reject(error);
-        return;
-      }
-      resolve(JSON.parse(tokenMap || 'null'));
-    });
+  static async getTokenMapFromCache(userId: string): Promise<ITokenMap> {
+    const tokenMap = await this.#client.get(getTokenMapCacheKey(userId));
+    return JSON.parse(tokenMap || 'null');
   }
 
   // user data
@@ -106,34 +77,18 @@ export default class Redis {
   static saveUserProfileToCache(
     userId: string,
     profile: UserProfileResponseBody
-  ): Promise<void> {
-    return new Promise(async (resolve, reject) => {
-      try {
-        await this.#client.set(
-          getUserProfileCacheKey(userId),
-          JSON.stringify(profile)
-        );
-      } catch (error) {
-        reject(error);
-        return;
-      }
-      resolve();
-    });
+  ) {
+    return this.#client.set(
+      getUserProfileCacheKey(userId),
+      JSON.stringify(profile)
+    );
   }
 
-  static getUserProfileFromCache(
+  static async getUserProfileFromCache(
     userId: string
   ): Promise<UserProfileResponseBody> {
-    return new Promise(async (resolve, reject) => {
-      let profile;
-      try {
-        profile = await this.#client.get(getUserProfileCacheKey(userId));
-      } catch (error) {
-        reject(error);
-        return;
-      }
-      resolve(JSON.parse(profile || 'null'));
-    });
+    const profile = await this.#client.get(getUserProfileCacheKey(userId));
+    return JSON.parse(profile || 'null');
   }
 
   static getTopTracksFromOrSaveToCache(
@@ -175,21 +130,13 @@ export default class Redis {
 
   // misc
 
-  static deleteTokenMapAndUserDataFromCache(userId: string): Promise<void> {
-    return new Promise(async (resolve, reject) => {
-      try {
-        await this.#client.del(getTokenMapCacheKey(userId));
-        await this.#client.del(getUserProfileCacheKey(userId));
-        await this.#client.eval(getTopItemCacheDeletionScript(userId, 'Track'));
-        await this.#client.eval(
-          getTopItemCacheDeletionScript(userId, 'Artist')
-        );
-      } catch (error) {
-        reject(error);
-        return;
-      }
-      resolve();
-    });
+  static async deleteTokenMapAndUserDataFromCache(
+    userId: string
+  ): Promise<void> {
+    await this.#client.del(getTokenMapCacheKey(userId));
+    await this.#client.del(getUserProfileCacheKey(userId));
+    await this.#client.eval(getTopItemCacheDeletionScript(userId, 'Track'));
+    await this.#client.eval(getTopItemCacheDeletionScript(userId, 'Artist'));
   }
 }
 
