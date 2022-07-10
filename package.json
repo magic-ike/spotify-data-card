@@ -24,7 +24,7 @@
     "express": "^4.18.1",
     "express-handlebars": "^6.0.5",
     "express-tsx-views": "^1.4.7",
-    "moment": "^2.29.3",
+    "moment-timezone": "^0.5.34",
     "mongoose": "^6.3.3",
     "react": "^18.1.0",
     "react-dom": "^18.1.0",

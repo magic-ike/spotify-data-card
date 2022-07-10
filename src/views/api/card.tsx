@@ -1,5 +1,5 @@
 import React from 'react';
-import moment from 'moment';
+import moment from 'moment-timezone';
 import pixelWidth from 'string-pixel-width';
 import DataCardProps from '../../interfaces/data-card-props.interface';
 import { Item, isTrack } from '../../interfaces/item.interface';
@@ -41,6 +41,7 @@ export default function DataCard({
   userDisplayName,
   showBorder,
   showDate,
+  timeZone,
   customTitle,
   showTitle,
   hideExplicit,
@@ -61,7 +62,11 @@ export default function DataCard({
     errorMessage ||
     customTitle ||
     `${userDisplayName}'s Spotify Data` +
-      (showDate ? ` on ${moment().format('MM/DD/YYYY [at] h:mm A')}` : '') +
+      (showDate
+        ? ` on ${(timeZone ? moment().tz(timeZone) : moment()).format(
+            'MM/DD/YYYY [at] h:mm A'
+          )}`
+        : '') +
       (hideExplicit ? ' (Clean)' : '');
 
   // calculate card size

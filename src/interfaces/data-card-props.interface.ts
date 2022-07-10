@@ -6,6 +6,7 @@ export default interface DataCardProps {
   userDisplayName: string;
   showBorder: boolean;
   showDate: boolean;
+  timeZone?: string;
   customTitle?: string;
   showTitle: boolean;
   hideExplicit: boolean;

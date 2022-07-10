@@ -51,6 +51,7 @@ export const card_get: RequestHandler = async (req, res) => {
   // get options from query params
   const {
     show_date,
+    time_zone,
     custom_title,
     hide_title,
     hide_explicit,
@@ -61,6 +62,7 @@ export const card_get: RequestHandler = async (req, res) => {
     limit
   } = cardReqBody;
   const showDate = boolFromString(show_date);
+  const timeZone = time_zone?.trim();
   const customTitle = custom_title?.trim();
   const showTitle = !boolFromString(hide_title);
   const hideExplicit = boolFromString(hide_explicit);
@@ -173,6 +175,7 @@ export const card_get: RequestHandler = async (req, res) => {
     userDisplayName,
     showBorder,
     showDate,
+    timeZone,
     customTitle,
     showTitle,
     hideExplicit,

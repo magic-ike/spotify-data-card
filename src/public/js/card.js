@@ -30,6 +30,7 @@ saveCardSnapshot = () => {
   const link = document.createElement('a');
   const imageUrlObject = new URL(getImageUrl());
   imageUrlObject.searchParams.set('show_date', '1');
+  imageUrlObject.searchParams.set('time_zone', moment.tz.guess());
   link.href = imageUrlObject.href;
   link.download = `Spotify Data on ${getDateString()}.svg`;
   document.body.appendChild(link);
