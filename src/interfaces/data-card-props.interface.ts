@@ -20,5 +20,6 @@ export default interface DataCardProps {
   topArtists: Artist[];
   imageDataMap: StringMap;
   itemLimit: number;
+  browserIsBuggy: boolean;
   errorMessage?: string;
 }

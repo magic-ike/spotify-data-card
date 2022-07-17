@@ -22,8 +22,6 @@ const renderPage = () => {
   const $loggedOutView = $('.logged-out-view');
   const $loggedInView = $('.logged-in-view');
 
-  $dataCard.one('load', () => $loadingImgContainer.hide());
-
   if (!loggedIn) {
     $dataCardLink.removeAttr('href');
     $dataCard.removeAttr('src');
@@ -31,9 +29,10 @@ const renderPage = () => {
     $loggedOutView.fadeIn();
     $loggedInView.hide();
   } else {
-    const [cardPageUrl, imageUrl] = getUrls(userId);
+    const [cardPageUrl, cardImageUrl] = getCardUrls(userId);
     $dataCardLink.attr('href', cardPageUrl);
-    $dataCard.attr('src', imageUrl);
+    $dataCard.one('load', () => $loadingImgContainer.hide());
+    $dataCard.attr('src', cardImageUrl);
 
     $loggedOutView.hide();
     $loggedInView.fadeIn();
@@ -52,19 +51,23 @@ const checkForHashParams = () => {
     localStorage.setItem(USER_ID, user_id);
     localStorage.setItem(REFRESH_TOKEN, refresh_token);
     alert('Data card generated!');
-  } else return;
-  history.replaceState('', document.title, window.location.pathname);
-  renderPage();
+    renderPage();
+  }
+  clearHashParams();
 };
 
 const getHashParams = () => {
   const params = {};
-  const regex = /([^&;=]+)=?([^&;]*)/g;
   const queryString = window.location.hash.slice(1);
+  const regex = /([^&;=]+)=?([^&;]*)/g;
   let execArray;
   while ((execArray = regex.exec(queryString)))
     params[execArray[1]] = decodeURIComponent(execArray[2]);
   return params;
+};
+
+const clearHashParams = () => {
+  history.replaceState('', document.title, window.location.pathname);
 };
 
 // buttons
@@ -75,22 +78,16 @@ const generateCard = () => {
   window.location.href = '/auth/login';
 };
 
-const copyCardCode = async () => {
+const copyCardCode = () => {
   const userId = localStorage.getItem(USER_ID);
-  const [cardPageUrl, imageUrl] = getUrls(userId);
-  const code = `<a href="${cardPageUrl}">
-  <img src="${imageUrl}" />
-</a>`;
-  const confirmation = `Code:
+  const [cardPageUrl, cardImageUrl] = getCardUrls(userId);
+  _copyCardCode(cardPageUrl, cardImageUrl);
+};
 
-${code}
-
-Click 'OK' to copy.`;
-  if (!confirm(confirmation)) return;
-  setTimeout(async () => {
-    await navigator.clipboard.writeText(code);
-    alert('Code copied to clipboard!');
-  }, DEFAULT_DELAY_TIME);
+const goToCardPage = () => {
+  const userId = localStorage.getItem(USER_ID);
+  const [cardPageUrl] = getCardUrls(userId);
+  window.location.href = cardPageUrl;
 };
 
 const logOut = () => {
@@ -101,11 +98,15 @@ const logOut = () => {
 const deleteCard = async () => {
   if (!confirm('Are you sure you want to delete your data card?')) return;
 
-  $('.delete-btn').hide();
-  $('.delete-btn-group > .loading-btn').show();
+  const $deleteBtn = $('.delete-btn');
+  const $loadingBtn = $('.delete-btn-group > .loading-btn');
+  $deleteBtn.hide();
+  $loadingBtn.show();
 
   const userId = localStorage.getItem(USER_ID);
   const refreshToken = localStorage.getItem(REFRESH_TOKEN);
+  const genericErrorMessage =
+    'Something went wrong while trying to delete your data card!\nTry logging out, logging back in, then trying again.';
   let response;
   try {
     response = await fetch(`/api/card?user_id=${userId}`, {
@@ -114,10 +115,15 @@ const deleteCard = async () => {
         Authorization: `Bearer ${refreshToken}`
       }
     });
+    if (!response.ok) throw genericErrorMessage;
   } catch (error) {
     alert(
-      'Something went wrong while trying to delete your data card!\nTry logging out, logging back in, then trying again.'
+      error === genericErrorMessage
+        ? error
+        : `Failed to delete data card. Error: ${error}`
     );
+    $deleteBtn.show();
+    $loadingBtn.hide();
     return;
   }
 
@@ -131,9 +137,8 @@ const deleteCard = async () => {
 
 // helpers
 
-const getUrls = (userId) => {
-  const origin = window.location.origin;
-  const cardPageUrl = `${origin}/card?user_id=${userId}`;
-  const imageUrl = `${origin}/api/card?user_id=${userId}`;
-  return [cardPageUrl, imageUrl];
+const getCardUrls = (userId) => {
+  const cardPageUrl = `${window.location.origin}/card?user_id=${userId}`;
+  const cardImageUrl = cardPageUrl.replace('/card', '/api/card');
+  return [cardPageUrl, cardImageUrl];
 };

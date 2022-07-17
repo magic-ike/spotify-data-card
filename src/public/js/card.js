@@ -7,31 +7,33 @@ $(() => {
 const renderPage = () => {
   const $loadingImgContainer = $('.loading-img-container');
   const $iDataCard = $('.interactive-data-card');
-  const $dataCard = $('.data-card');
-
-  const imageUrl = getImageUrl();
-  $dataCard.one('load', () => {
-    $iDataCard.attr('data', imageUrl); // must be run after the main view is visible
-    $loadingImgContainer.hide();
-  });
-  $dataCard.attr('src', imageUrl);
-
+  const [_, cardImageUrl] = getCardUrls();
+  $iDataCard.one('load', () => $loadingImgContainer.hide());
   showMainView();
+  $iDataCard.attr('data', cardImageUrl); // must be set AFTER the main view is visible
 };
 
 // buttons
 
-copyCardPageLink = async () => {
-  await navigator.clipboard.writeText(window.location.href);
+const copyCardCode = () => {
+  const [cardPageUrl, cardImageUrl] = getCardUrls();
+  _copyCardCode(cardPageUrl, cardImageUrl);
+};
+
+const copyCardPageLink = async () => {
+  const [cardPageUrl] = getCardUrls();
+  await navigator.clipboard.writeText(cardPageUrl);
   alert('Link copied to clipboard!');
 };
 
-saveCardSnapshot = () => {
+const saveCardSnapshot = () => {
+  const [_, cardImageUrl] = getCardUrls();
+  const cardImageUrlObject = new URL(cardImageUrl);
+  cardImageUrlObject.searchParams.set('show_date', '1');
+  cardImageUrlObject.searchParams.set('time_zone', moment.tz.guess());
+
   const link = document.createElement('a');
-  const imageUrlObject = new URL(getImageUrl());
-  imageUrlObject.searchParams.set('show_date', '1');
-  imageUrlObject.searchParams.set('time_zone', moment.tz.guess());
-  link.href = imageUrlObject.href;
+  link.href = cardImageUrlObject.href;
   link.download = `Spotify Data on ${getDateString()}.svg`;
   document.body.appendChild(link);
   link.click();
@@ -39,14 +41,16 @@ saveCardSnapshot = () => {
   alert('Download started...');
 };
 
-goToHomePage = () => {
+const goToHomePage = () => {
   window.location.href = '/';
 };
 
 // helpers
 
-const getImageUrl = () => {
-  return `${window.location.origin}/api${window.location.pathname}${window.location.search}`;
+const getCardUrls = () => {
+  const cardPageUrl = window.location.href;
+  const cardImageUrl = cardPageUrl.replace('/card', '/api/card');
+  return [cardPageUrl, cardImageUrl];
 };
 
 const getDateString = () => {

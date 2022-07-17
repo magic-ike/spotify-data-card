@@ -55,6 +55,7 @@ export default function DataCard({
   topArtists,
   imageDataMap,
   itemLimit,
+  browserIsBuggy,
   errorMessage
 }: DataCardProps) {
   // set card title
@@ -104,7 +105,6 @@ export default function DataCard({
       height={finalCardHeight}
       xmlns="http://www.w3.org/2000/svg"
       role="img"
-      aria-labelledby="title"
     >
       <style>{generateDataCardCellCSS()}</style>
       <foreignObject width="100%" height="100%">
@@ -120,42 +120,43 @@ export default function DataCard({
           >
             <div
               className={
-                'card-title scrolling-container' +
-                (errorMessage ? ' error-message' : '')
+                'card-title' +
+                (errorMessage ? ' error-message' : '') +
+                (browserIsBuggy ? ' no-scroll' : ' scrolling-container')
               }
               style={{
                 display: showTitle || errorMessage ? undefined : 'none'
               }}
             >
-              {textOverflows(cardTitle, CARD_TITLE_FONT_SIZE, cardWidth) ? (
+              {textOverflows(cardTitle, CARD_TITLE_FONT_SIZE, cardWidth) &&
+              !browserIsBuggy ? (
                 <>
-                  <div id="title" className="scrolling">
-                    {cardTitle}
-                  </div>
+                  <div className="scrolling">{cardTitle}</div>
                   <div className="scrolling" aria-hidden="true">
                     {cardTitle}
                   </div>
                 </>
               ) : (
-                <div id="title">{cardTitle}</div>
+                cardTitle
               )}
             </div>
 
             {!errorMessage && (
               <>
                 {showNowPlaying && (
-                  <section className="now-playing-section">
+                  <div className="now-playing-section">
                     <div className="card-subtitle">Currently Listening To</div>
                     <DataCardCell
                       item={nowPlaying}
                       imageDataMap={imageDataMap}
+                      browserIsBuggy={browserIsBuggy}
                     />
-                  </section>
+                  </div>
                 )}
 
                 <div className="other-sections">
                   {showRecentlyPlayed && (
-                    <section>
+                    <div>
                       <div className="card-subtitle">
                         Recently Played Tracks
                       </div>
@@ -165,6 +166,7 @@ export default function DataCard({
                             item={track}
                             imageDataMap={imageDataMap}
                             rank={i + 1}
+                            browserIsBuggy={browserIsBuggy}
                             key={`recent-${i}`}
                           />
                         ))
@@ -173,13 +175,14 @@ export default function DataCard({
                           item={null}
                           imageDataMap={imageDataMap}
                           rank={1}
+                          browserIsBuggy={browserIsBuggy}
                         />
                       )}
-                    </section>
+                    </div>
                   )}
 
                   {showTopTracks && (
-                    <section>
+                    <div>
                       <div className="card-subtitle">Top Tracks</div>
                       {topTracks.length ? (
                         topTracks.map((track, i) => (
@@ -187,6 +190,7 @@ export default function DataCard({
                             item={track}
                             imageDataMap={imageDataMap}
                             rank={i + 1}
+                            browserIsBuggy={browserIsBuggy}
                             key={`top-track-${i}`}
                           />
                         ))
@@ -195,13 +199,14 @@ export default function DataCard({
                           item={null}
                           imageDataMap={imageDataMap}
                           rank={1}
+                          browserIsBuggy={browserIsBuggy}
                         />
                       )}
-                    </section>
+                    </div>
                   )}
 
                   {showTopArtists && (
-                    <section>
+                    <div>
                       <div className="card-subtitle">Top Artists</div>
                       {topArtists.length ? (
                         topArtists.map((artist, i) => (
@@ -209,6 +214,7 @@ export default function DataCard({
                             item={artist}
                             imageDataMap={imageDataMap}
                             rank={i + 1}
+                            browserIsBuggy={browserIsBuggy}
                             key={`top-artist-${i}`}
                           />
                         ))
@@ -217,9 +223,10 @@ export default function DataCard({
                           item={null}
                           imageDataMap={imageDataMap}
                           rank={1}
+                          browserIsBuggy={browserIsBuggy}
                         />
                       )}
-                    </section>
+                    </div>
                   )}
                 </div>
               </>
@@ -251,9 +258,15 @@ interface DataCardCellProps {
   item: Item;
   imageDataMap: StringMap;
   rank?: number;
+  browserIsBuggy: boolean;
 }
 
-const DataCardCell = ({ item, imageDataMap, rank }: DataCardCellProps) => {
+const DataCardCell = ({
+  item,
+  imageDataMap,
+  rank,
+  browserIsBuggy
+}: DataCardCellProps) => {
   const CellContainer = item ? SafeLink : 'div';
   const cellTitle = item
     ? isTrack(item)
@@ -266,9 +279,13 @@ const DataCardCell = ({ item, imageDataMap, rank }: DataCardCellProps) => {
     ? `${item.artist} • ${item.albumTitle}`
     : '';
   const cellSubtitleJSX = (
-    <div className="track-subtitle-container">
+    <div className="track-subtitle-flexbox">
       {isTrack(item) && item.explicit && <div className="explicit-tag">E</div>}
-      {cellSubtitle}
+      <div
+        className={'track-subtitle-text' + (browserIsBuggy ? ' no-scroll' : '')}
+      >
+        {cellSubtitle}
+      </div>
     </div>
   );
 
@@ -285,6 +302,7 @@ const DataCardCell = ({ item, imageDataMap, rank }: DataCardCellProps) => {
               'data:image/jpeg;base64,' +
               imageDataMap[isTrack(item) ? item.albumImageUrl : item.imageUrl]
             }
+            alt=""
             width={CONTENT_HEIGHT}
             height={CONTENT_HEIGHT}
           />
@@ -292,14 +310,14 @@ const DataCardCell = ({ item, imageDataMap, rank }: DataCardCellProps) => {
             <div
               className={
                 (isTrack(item) ? 'track-title' : 'big-text') +
-                ' scrolling-container'
+                (browserIsBuggy ? ' no-scroll' : ' scrolling-container')
               }
             >
               {textOverflows(
                 cellTitle,
                 isTrack(item) ? TEXT_FONT_SIZE : BIG_TEXT_FONT_SIZE,
                 TEXT_CONTENT_WIDTH
-              ) ? (
+              ) && !browserIsBuggy ? (
                 <>
                   <div className="scrolling">{cellTitle}</div>
                   <div className="scrolling" aria-hidden="true">
@@ -313,9 +331,15 @@ const DataCardCell = ({ item, imageDataMap, rank }: DataCardCellProps) => {
             {isTrack(item) && (
               <>
                 <div
-                  className="track-subtitle scrolling-container"
+                  className={
+                    'track-subtitle' +
+                    (browserIsBuggy ? '' : ' scrolling-container')
+                  }
                   style={{
-                    marginBottom: isNowPlaying(item, rank) ? 14 : undefined
+                    marginBottom:
+                      isNowPlaying(item, rank) && !browserIsBuggy
+                        ? 14
+                        : undefined
                   }}
                 >
                   {textOverflows(
@@ -323,7 +347,7 @@ const DataCardCell = ({ item, imageDataMap, rank }: DataCardCellProps) => {
                     TEXT_FONT_SIZE,
                     TEXT_CONTENT_WIDTH,
                     item.explicit ? EXPLICIT_TAG_SPACE : undefined
-                  ) ? (
+                  ) && !browserIsBuggy ? (
                     <>
                       <div className="scrolling">{cellSubtitleJSX}</div>
                       <div className="scrolling" aria-hidden="true">
@@ -334,7 +358,7 @@ const DataCardCell = ({ item, imageDataMap, rank }: DataCardCellProps) => {
                     cellSubtitleJSX
                   )}
                 </div>
-                {isNowPlaying(item, rank) && (
+                {isNowPlaying(item, rank) && !browserIsBuggy && (
                   <div className="bars">{generateBarContent()}</div>
                 )}
               </>
@@ -422,6 +446,8 @@ const generateDataCardCellCSS = () => {
   return `
     * {
       color: inherit;
+      font-family: inherit;
+      font-weight: inherit;
       box-sizing: border-box;
     }
 
@@ -430,9 +456,6 @@ const generateDataCardCellCSS = () => {
       --gray: #2a2a2a;
       --light-gray: #b3b3b3;
       --green: #1db954;
-    }
-
-    div {
       font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji;
       font-weight: 500;
     }
@@ -453,10 +476,10 @@ const generateDataCardCellCSS = () => {
     }
 
     .attribution {
+      height: ${ATTRIBUTION_HEIGHT}px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      height: ${ATTRIBUTION_HEIGHT}px;
     }
 
     .spotify-link,
@@ -488,18 +511,6 @@ const generateDataCardCellCSS = () => {
     .card-title,
     .card-subtitle {
       text-align: center;
-    }
-
-    .explicit-tag {
-      background-color: var(--light-gray);
-      color: var(--black);
-      font-size: 10px;
-      text-align: center;
-      line-height: ${EXPLICIT_TAG_WIDTH}px;
-      width: ${EXPLICIT_TAG_WIDTH}px;
-      height: ${EXPLICIT_TAG_WIDTH}px;
-      border-radius: 2px;
-      margin-right: ${EXPLICIT_TAG_MARGIN}px;
     }
 
     .attribution,
@@ -550,19 +561,12 @@ const generateDataCardCellCSS = () => {
       font-size: ${BIG_TEXT_FONT_SIZE}px;
     }
 
-    .cover {}
-
     .text-container {
       width: ${TEXT_CONTENT_WIDTH}px;
     }
 
     .track-title {
       margin-bottom: 3px;
-    }
-
-    .track-subtitle-container {
-      display: flex;
-      align-items: center;
     }
 
     .track-subtitle {
@@ -575,6 +579,32 @@ const generateDataCardCellCSS = () => {
       font-size: ${TEXT_FONT_SIZE}px;
     }
 
+    .track-subtitle-flexbox {
+      display: flex;
+      align-items: center;
+    }
+
+    .track-subtitle-flexbox > * {
+      flex-shrink: 0;
+    }
+
+    .explicit-tag {
+      background-color: var(--light-gray);
+      color: var(--black);
+      font-size: 10px;
+      font-weight: 500;
+      text-align: center;
+      line-height: ${EXPLICIT_TAG_WIDTH}px;
+      width: ${EXPLICIT_TAG_WIDTH}px;
+      height: ${EXPLICIT_TAG_WIDTH}px;
+      border-radius: 2px;
+      margin-right: ${EXPLICIT_TAG_MARGIN}px;
+    }
+
+    .track-subtitle-text.no-scroll {
+      flex: 1;
+    }
+
     .not-playing {
       text-align: center;
       width: 100%;
@@ -582,15 +612,20 @@ const generateDataCardCellCSS = () => {
     
     /* scrolling animation */
 
+    .no-scroll {
+      text-overflow: ellipsis;
+    }
+
+    .no-scroll,
     .scrolling-container {
       overflow: hidden;
       white-space: nowrap;
     }
 
     .scrolling {
-      animation: marquee 10s linear infinite;
-      display: inline-block;
       padding-right: 20px;
+      display: inline-block;
+      animation: marquee 10s linear infinite;
     }
 
     @keyframes marquee {
@@ -605,14 +640,14 @@ const generateDataCardCellCSS = () => {
 
     /* /scrolling animation */
 
-    /* bars animation */
+    /* sound animation */
 
     .bars {
-      position: absolute;
       width: ${TEXT_CONTENT_WIDTH}px;
       height: 6px;
-      overflow: hidden;
       margin: -6px 0 0 0;
+      overflow: hidden;
+      position: absolute;
     }
 
     .bar {
@@ -638,6 +673,6 @@ const generateDataCardCellCSS = () => {
 
     ${generateBarCSS()}
 
-    /* /bars animation */
+    /* /sound animation */
   `;
 };

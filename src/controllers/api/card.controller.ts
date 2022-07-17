@@ -1,4 +1,4 @@
-import { RequestHandler, Response } from 'express';
+import { Request, RequestHandler, Response } from 'express';
 import { disableHttpCaching } from '../../middleware/http-cache.middleware';
 import TokenMap from '../../models/token-map.model';
 import User from '../../models/user.model';
@@ -20,12 +20,20 @@ export const card_get: RequestHandler = async (req, res) => {
   // set content-type header to svg
   res.header('Content-Type', 'image/svg+xml');
 
+  // do browser detection
+  const browserIsBuggy = detectBuggyBrowser(req);
+
   // validate user id query param
   const cardReqBody = req.query as unknown as CardGetRequestQueryParams;
   const { user_id: userId, show_border } = cardReqBody;
   const showBorder = boolFromString(show_border);
   if (!userId) {
-    renderErrorCard(res, 'Missing required parameter: user_id', showBorder);
+    renderErrorCard(
+      res,
+      'Missing required parameter: user_id',
+      showBorder,
+      browserIsBuggy
+    );
     return;
   }
 
@@ -34,7 +42,12 @@ export const card_get: RequestHandler = async (req, res) => {
   try {
     accessToken = await TokenMap.getLatestAccessToken(userId);
   } catch (error) {
-    renderErrorCard(res, getGenericErrorMessage(userId), showBorder);
+    renderErrorCard(
+      res,
+      getGenericErrorMessage(userId),
+      showBorder,
+      browserIsBuggy
+    );
     return;
   }
 
@@ -44,7 +57,12 @@ export const card_get: RequestHandler = async (req, res) => {
     const { display_name } = await User.getUserProfile(accessToken);
     userDisplayName = display_name;
   } catch (error) {
-    renderErrorCard(res, getGenericErrorMessage(userId), showBorder);
+    renderErrorCard(
+      res,
+      getGenericErrorMessage(userId),
+      showBorder,
+      browserIsBuggy
+    );
     return;
   }
 
@@ -87,7 +105,8 @@ export const card_get: RequestHandler = async (req, res) => {
     renderErrorCard(
       res,
       `${userDisplayName} doesn't want to show any of their Spotify data. 🤷🏾‍♂️`,
-      showBorder
+      showBorder,
+      browserIsBuggy
     );
     return;
   }
@@ -101,7 +120,8 @@ export const card_get: RequestHandler = async (req, res) => {
       renderErrorCard(
         res,
         getGenericErrorMessage(userId, userDisplayName),
-        showBorder
+        showBorder,
+        browserIsBuggy
       );
       return;
     }
@@ -120,7 +140,8 @@ export const card_get: RequestHandler = async (req, res) => {
       renderErrorCard(
         res,
         getGenericErrorMessage(userId, userDisplayName),
-        showBorder
+        showBorder,
+        browserIsBuggy
       );
       return;
     }
@@ -140,7 +161,8 @@ export const card_get: RequestHandler = async (req, res) => {
       renderErrorCard(
         res,
         getGenericErrorMessage(userId, userDisplayName),
-        showBorder
+        showBorder,
+        browserIsBuggy
       );
       return;
     }
@@ -155,7 +177,8 @@ export const card_get: RequestHandler = async (req, res) => {
       renderErrorCard(
         res,
         getGenericErrorMessage(userId, userDisplayName),
-        showBorder
+        showBorder,
+        browserIsBuggy
       );
       return;
     }
@@ -188,7 +211,8 @@ export const card_get: RequestHandler = async (req, res) => {
     showTopArtists,
     topArtists,
     imageDataMap,
-    itemLimit
+    itemLimit,
+    browserIsBuggy
   };
   res.render(CARD_VIEW_PATH, dataCardProps);
 };
@@ -254,17 +278,32 @@ export const card_delete: RequestHandler = async (req, res) => {
 
 // helpers
 
+const detectBuggyBrowser = (req: Request) => {
+  const userAgent = req.headers['user-agent'] ?? '';
+  return (
+    /\b(iPad|iPhone|iPod)\b/.test(userAgent) ||
+    (/AppleWebKit/.test(userAgent) &&
+      !/Chrome/.test(userAgent) &&
+      !/Edge/.test(userAgent))
+  );
+};
+
 const renderErrorCard = (
   res: Response,
   errorMessage: string,
-  showBorder: boolean
+  showBorder: boolean,
+  browserIsBuggy: boolean
 ) => {
   disableHttpCaching(res);
-  res.render(CARD_VIEW_PATH, { showBorder, errorMessage });
+  res.render(CARD_VIEW_PATH, {
+    showBorder,
+    browserIsBuggy,
+    errorMessage
+  });
 };
 
 const getGenericErrorMessage = (userId: string, userDisplayName?: string) => {
-  return `Something went wrong! ${
+  return `Card not found! ${
     userDisplayName || `The user with ID ${userId}`
-  } may need to re-generate a data card at ${SHORT_URL}.`;
+  } may need to generate/re-generate a data card at ${SHORT_URL}.`;
 };
