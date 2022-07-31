@@ -8,7 +8,12 @@ import { CALLBACK_PATH } from '../../utils/constant.util';
 import { getBaseUrl, getFullUrl } from '../../utils/url.util';
 import { generateRandomString } from '../../utils/string.util';
 
-const STATE_KEY = 'spotify_auth_state';
+export const SPOTIFY_AUTH_URL = 'https://accounts.spotify.com/authorize?';
+export const AUTH_STATE_COOKIE_KEY = 'spotify_auth_state';
+export const AUTH_ERROR_MESSAGE = {
+  STATE_MISMATCH: 'state_mismatch',
+  MISSING_AUTH_CODE: 'missing_auth_code'
+};
 
 // requests user authorization
 export const auth_login: RequestHandler = (req, res) => {
@@ -16,9 +21,9 @@ export const auth_login: RequestHandler = (req, res) => {
   const scope =
     'user-read-currently-playing user-read-recently-played user-top-read';
   const state = generateRandomString(16);
-  res.cookie(STATE_KEY, state, { httpOnly: true });
+  res.cookie(AUTH_STATE_COOKIE_KEY, state, { httpOnly: true });
   res.redirect(
-    'https://accounts.spotify.com/authorize?' +
+    SPOTIFY_AUTH_URL +
       stringify({
         client_id: CLIENT_ID,
         response_type: 'code',
@@ -40,16 +45,16 @@ export const auth_callback: RequestHandler = async (req, res) => {
   }
 
   const state = req.query.state;
-  const originalState = req.cookies[STATE_KEY];
-  res.clearCookie(STATE_KEY, { httpOnly: true });
+  const originalState = req.cookies[AUTH_STATE_COOKIE_KEY];
+  res.clearCookie(AUTH_STATE_COOKIE_KEY, { httpOnly: true });
   if (!state || state !== originalState) {
-    redirectToHomePageWithError(res, 'state_mismatch');
+    redirectToHomePageWithError(res, AUTH_ERROR_MESSAGE.STATE_MISMATCH);
     return;
   }
 
   const authCode = req.query.code;
   if (!authCode) {
-    redirectToHomePageWithError(res, 'missing_auth_code');
+    redirectToHomePageWithError(res, AUTH_ERROR_MESSAGE.MISSING_AUTH_CODE);
     return;
   }
 

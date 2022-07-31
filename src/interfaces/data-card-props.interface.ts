@@ -1,6 +1,6 @@
 import Track from './track.interface';
 import Artist from './artist.interface';
-import StringMap from './map.interface';
+import StringMap from './string-map.interface';
 
 export default interface DataCardProps {
   userDisplayName: string;

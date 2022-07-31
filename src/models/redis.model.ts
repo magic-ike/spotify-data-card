@@ -39,13 +39,13 @@ export default class Redis {
     // run fallback function
     const freshData = await fallbackFunction();
 
-    // save to cache (no await)
-    if (typeof expiration === 'number') {
-      this.#client
-        .setEx(key, expiration, JSON.stringify(freshData))
-        .catch((error) => error);
-    } else {
-      this.#client.set(key, JSON.stringify(freshData)).catch((error) => error);
+    // save to cache
+    try {
+      typeof expiration === 'number'
+        ? await this.#client.setEx(key, expiration, JSON.stringify(freshData))
+        : await this.#client.set(key, JSON.stringify(freshData));
+    } catch (error) {
+      console.log(error);
     }
 
     // resolve with fresh data
@@ -55,7 +55,11 @@ export default class Redis {
   // connection
 
   static connect() {
-    this.#client.connect();
+    return this.#client.connect();
+  }
+
+  static quit() {
+    return this.#client.quit();
   }
 
   // token maps

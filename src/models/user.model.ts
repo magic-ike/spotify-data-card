@@ -52,11 +52,13 @@ export default class User {
       fetchedUserId = id;
     }
 
-    // save profile to cache if necessary (no await)
+    // save profile to cache if necessary
     if (fetchedUserId !== null) {
-      Redis.saveUserProfileToCache(fetchedUserId, profile).catch((error) =>
-        console.log(error)
-      );
+      try {
+        await Redis.saveUserProfileToCache(fetchedUserId, profile);
+      } catch (error) {
+        console.log(error);
+      }
     }
 
     // resolve with profile

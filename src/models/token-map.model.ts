@@ -1,4 +1,4 @@
-import { model, Schema } from 'mongoose';
+import { model, models, Schema } from 'mongoose';
 import Redis from '../models/redis.model';
 import Auth from './auth.model';
 import ITokenMap from '../interfaces/token-map.interface';
@@ -27,7 +27,9 @@ const tokenMapSchema = new Schema<ITokenMap>(
   { timestamps: true }
 );
 
-const MongoTokenMap = model<ITokenMap>('Token Map', tokenMapSchema);
+const MongoTokenMap =
+  models['Token Map'] || // fixes model overwrite error
+  model<ITokenMap>('Token Map', tokenMapSchema);
 
 export default class TokenMap extends MongoTokenMap {
   // extra methods (defined later)
@@ -57,7 +59,14 @@ export default class TokenMap extends MongoTokenMap {
     } catch (error) {
       throw (error as Error).message;
     }
-    saveTokenMapToCache(userId, tokenMap); // no await
+
+    // save to cache
+    try {
+      await Redis.saveTokenMapToCache(userId, tokenMap);
+    } catch (error) {
+      console.log(error);
+    }
+
     return tokenMap;
   }
 
@@ -91,7 +100,14 @@ export default class TokenMap extends MongoTokenMap {
       throw (error as Error).message;
     }
     if (!tokenMap) throw `Token map with user ID '${userId}' doesn't exist.`;
-    saveTokenMapToCache(userId, tokenMap); // no await
+
+    // save to cache
+    try {
+      await Redis.saveTokenMapToCache(userId, tokenMap);
+    } catch (error) {
+      console.log(error);
+    }
+
     return tokenMap;
   }
 
@@ -105,10 +121,14 @@ export default class TokenMap extends MongoTokenMap {
     if (!tokenMap) {
       throw `Token map with user ID '${userId}' didn't exist.`;
     }
-    // delete from cache (no await)
-    Redis.deleteTokenMapAndUserDataFromCache(userId).catch((error) =>
-      console.log(error)
-    );
+
+    // delete from cache
+    try {
+      await Redis.deleteTokenMapAndUserDataFromCache(userId);
+    } catch (error) {
+      console.log(error);
+    }
+
     return tokenMap;
   }
 }
@@ -149,17 +169,15 @@ TokenMap.getLatestAccessToken = async function (
     accessToken = access_token;
   }
 
-  // save access token to cache if necessary (no await)
-  if (!cacheHit) saveTokenMapToCache(userId, tokenMap);
+  // save token map to cache if necessary
+  if (!cacheHit) {
+    try {
+      await Redis.saveTokenMapToCache(userId, tokenMap);
+    } catch (error) {
+      console.log(error);
+    }
+  }
 
   // resolve with access token
   return accessToken;
-};
-
-// helpers
-
-const saveTokenMapToCache = (userId: string, tokenMap: ITokenMap) => {
-  Redis.saveTokenMapToCache(userId, tokenMap).catch((error) =>
-    console.log(error)
-  );
 };

@@ -1,6 +1,6 @@
 import Redis from './redis.model';
 import { Item, isTrack } from '../interfaces/item.interface';
-import StringMap from '../interfaces/map.interface';
+import StringMap from '../interfaces/string-map.interface';
 import { getBase64DataFromImageUrl } from '../utils/image.util';
 
 export default class Image {

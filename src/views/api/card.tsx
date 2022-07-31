@@ -3,7 +3,7 @@ import moment from 'moment-timezone';
 import pixelWidth from 'string-pixel-width';
 import DataCardProps from '../../interfaces/data-card-props.interface';
 import { Item, isTrack } from '../../interfaces/item.interface';
-import StringMap from '../../interfaces/map.interface';
+import StringMap from '../../interfaces/string-map.interface';
 import { randomIntFromIntervalInclusive } from '../../utils/number.util';
 import { getBase64DataFromImagePath } from '../../utils/image.util';
 import { SHORT_URL, SPOTIFY_WHITE_LOGO_PATH } from '../../utils/constant.util';

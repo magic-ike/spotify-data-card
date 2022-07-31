@@ -8,7 +8,7 @@ import CardDeleteRequestQueryParams from '../../interfaces/card-delete-request-q
 import Track from '../../interfaces/track.interface';
 import Artist from '../../interfaces/artist.interface';
 import DataCardProps from '../../interfaces/data-card-props.interface';
-import { CARD_VIEW_PATH, SHORT_URL } from '../../utils/constant.util';
+import { CARD_API_VIEW_PATH, SHORT_URL } from '../../utils/constant.util';
 import { boolFromString, boundedIntFromString } from '../../utils/string.util';
 
 const DEFAULT_ITEM_COUNT = 5;
@@ -30,7 +30,7 @@ export const card_get: RequestHandler = async (req, res) => {
   if (!userId) {
     renderErrorCard(
       res,
-      'Missing required parameter: user_id',
+      CARD_API_ERROR_MESSAGE.NO_USER_ID,
       showBorder,
       browserIsBuggy
     );
@@ -214,8 +214,18 @@ export const card_get: RequestHandler = async (req, res) => {
     itemLimit,
     browserIsBuggy
   };
-  res.render(CARD_VIEW_PATH, dataCardProps);
+  res.render(CARD_API_VIEW_PATH, dataCardProps);
 };
+
+export const CARD_API_ERROR_MESSAGE = {
+  NO_USER_ID: 'Missing required parameter: user_id',
+  NO_TOKEN: 'No token provided.',
+  INVALID_AUTH: 'Only valid bearer authentication supported.',
+  CARD_NOT_FOUND: 'Data card not found.',
+  INVALID_TOKEN: 'Invalid token.'
+};
+export const CARD_API_DELETION_SUCCESS_MESSAGE =
+  'Data card deleted successfully.';
 
 // deletes a data card
 export const card_delete: RequestHandler = async (req, res) => {
@@ -223,28 +233,28 @@ export const card_delete: RequestHandler = async (req, res) => {
   const { user_id: userId } =
     req.query as unknown as CardDeleteRequestQueryParams;
   if (!userId) {
-    res.status(400).send('Missing required parameter: user_id');
+    res.status(400).send(CARD_API_ERROR_MESSAGE.NO_USER_ID);
     return;
   }
 
   // check that auth header exists
   const authHeader = req.header('authorization');
   if (!authHeader) {
-    res.status(401).send('No token provided.');
+    res.status(401).send(CARD_API_ERROR_MESSAGE.NO_TOKEN);
     return;
   }
 
   // validate auth header scheme
   const authSchemeString = 'bearer ';
   if (!authHeader.toLowerCase().startsWith(authSchemeString)) {
-    res.status(400).send('Only valid bearer authentication supported.');
+    res.status(400).send(CARD_API_ERROR_MESSAGE.INVALID_AUTH);
     return;
   }
 
   // get refresh token from auth header
   const refreshToken = authHeader.substring(authSchemeString.length);
   if (!refreshToken.trim()) {
-    res.status(400).send('Only valid bearer authentication supported.');
+    res.status(400).send(CARD_API_ERROR_MESSAGE.INVALID_AUTH);
     return;
   }
 
@@ -253,14 +263,14 @@ export const card_delete: RequestHandler = async (req, res) => {
   try {
     tokenMap = await TokenMap.getTokenMap(userId);
   } catch (error) {
-    res.status(404).send('Data card not found.');
+    res.status(404).send(CARD_API_ERROR_MESSAGE.CARD_NOT_FOUND);
     return;
   }
 
   // check that original refresh token matches refresh token associated with token map
   const { refreshToken: refreshToken2 } = tokenMap;
   if (refreshToken !== refreshToken2) {
-    res.status(401).send('Invalid token.');
+    res.status(401).send(CARD_API_ERROR_MESSAGE.INVALID_TOKEN);
     return;
   }
 
@@ -268,12 +278,12 @@ export const card_delete: RequestHandler = async (req, res) => {
   try {
     await TokenMap.deleteTokenMap(userId);
   } catch (error) {
-    res.status(404).send('Data card not found.');
+    res.status(404).send(CARD_API_ERROR_MESSAGE.CARD_NOT_FOUND);
     return;
   }
 
   // send confirmation
-  res.send('Data card deleted successfully.');
+  res.send(CARD_API_DELETION_SUCCESS_MESSAGE);
 };
 
 // helpers
@@ -295,7 +305,7 @@ const renderErrorCard = (
   browserIsBuggy: boolean
 ) => {
   disableHttpCaching(res);
-  res.render(CARD_VIEW_PATH, {
+  res.render(CARD_API_VIEW_PATH, {
     showBorder,
     browserIsBuggy,
     errorMessage
