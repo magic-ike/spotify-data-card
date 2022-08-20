@@ -1,39 +1,39 @@
 <html lang='en'>
   <head>
-    <meta charset='UTF-8' />
-    <meta http-equiv='X-UA-Compatible' content='IE=edge' />
-    <meta name='viewport' content='width=device-width, initial-scale=1.0' />
+    <meta charset='UTF-8'>
+    <meta http-equiv='X-UA-Compatible' content='IE=edge'>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
     <title>{{pageTitle}}</title>
-    <meta name="description" content="{{pageDescription}}" />
+    <meta name="description" content="{{pageDescription}}">
     
     <!-- open graph metadata -->
-    <meta property="og:type" content="website" />
-    <meta property="og:title" content="{{pageTitle}}" />
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="{{pageTitle}}">
     <meta
       property="og:description"
       content="{{pageDescription}}"
-    />
-    <meta property="og:url" content="{{pageUrl}}" />
+    >
+    <meta property="og:url" content="{{pageUrl}}">
     <meta
       property="og:image"
       content="{{siteImage}}"
-    />
+    >
 
     <!-- twitter metadata -->
-    <meta name="twitter:card" content="summary" />
-    <meta name="twitter:text:title" content="{{pageTitle}}" />
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:text:title" content="{{pageTitle}}">
     <meta
       name="twitter:description"
       content="{{pageDescription}}"
-    />
-    <meta name="twitter:url" content="{{pageUrl}}" />
+    >
+    <meta name="twitter:url" content="{{pageUrl}}">
     <meta
       name="twitter:image"
       content="{{siteImage}}"
-    />
+    >
 
-    <link rel='stylesheet' href='css/main.css' />
-    <link rel='stylesheet' href='css/font.css' />
+    <link rel='stylesheet' href='css/main.css'>
+    <link rel='stylesheet' href='css/font.css'>
     <script
       src='https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js'
       defer
@@ -43,8 +43,6 @@
     {{#if (areEqual @exphbs.view (homePageView))}}
       <script src='js/home.js' defer></script>
     {{else if (areEqual @exphbs.view (cardPageView))}}
-      <script src='https://momentjs.com/downloads/moment.js' defer></script>
-      <script src='https://momentjs.com/downloads/moment-timezone-with-data.js' defer></script>
       <script src='js/card.js' defer></script>
     {{/if}}
 
@@ -73,15 +71,15 @@
         <img
           class='spotify-logo'
           src='images/Spotify_Logo_RGB_White.png'
-          alt='Spotify Link'
+          alt='spotify.com'
           height='30'
-        />
+        >
         <img
           class='spotify-icon'
           src='images/Spotify_Icon_RGB_White.png'
-          alt='Spotify Link'
+          alt='spotify.com'
           height='30'
-        />
+        >
       </a>
       <a
         class='repo-link'

@@ -13,7 +13,7 @@ function showMainView() {
 
 async function _copyCardCode(pageUrl, imageUrl) {
   const code = `<a href="${pageUrl}">
-  <img src="${imageUrl}" alt="Spotify Data Card">
+  <img src="${imageUrl}" alt="Data Card for Spotify">
 </a>`;
   await navigator.clipboard.writeText(code);
   alert('Code copied to clipboard!');

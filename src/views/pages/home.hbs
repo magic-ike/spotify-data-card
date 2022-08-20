@@ -1,7 +1,8 @@
 <div class='column-view logged-out-view'>
-  <div class='gen-text'>Click the 'Generate Card' button below to generate your own
-    Spotify data card, which you can embed in your website, blog, markup code,
-    etc.</div>
+  <div class='gen-text'>
+    Click the 'Generate Card' button below to generate your own data card, which you can embed in your website, blog, markup code,
+    etc.
+  </div>
   <div class="gen-btn-group">
     {{> loading-button}}
     <button class='btn gen-btn' onclick='generateCard()'>Generate Card</button>
@@ -20,6 +21,6 @@
   {{/button-row}}
   <a class='data-card-link'>
     {{> loading-image}}
-    <img class='data-card' alt='Data Card' />
+    <img class='data-card' alt='{{siteTitle}}'>
   </a>
 </div>

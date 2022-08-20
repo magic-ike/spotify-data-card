@@ -4,6 +4,7 @@ import { engine } from 'express-handlebars';
 import { setupReactViews } from 'express-tsx-views';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
+import forceSSLRedirect from './middleware/ssl-redirect.middleware';
 import router from './routes/index.route';
 import { HBS_HELPERS } from './config/index.config';
 
@@ -49,7 +50,8 @@ app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-// custom middleware should go here
+// custom middleware
+app.use(forceSSLRedirect);
 
 // static files
 app.use(express.static(path.join(__dirname, 'public')));

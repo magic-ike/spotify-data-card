@@ -9,8 +9,8 @@
     "build": "rimraf dist && tsc -p tsconfig.build.json && copyup 'src/views/**/*.hbs' 'src/public/**/*' dist",
     "lint": "eslint . --ext .ts",
     "lint:fix": "eslint . --ext .ts --fix",
-    "test": "jest --setupFiles dotenv/config",
-    "test:coverage": "jest --setupFiles dotenv/config --coverage",
+    "test": "jest",
+    "test:coverage": "jest --coverage",
     "build+test": "yarn build && yarn test",
     "heroku-postbuild": "yarn lint && yarn build+test"
   },
