@@ -14,5 +14,8 @@ const setHttpCacheControlHeader: RequestHandler = (_req, res, next) => {
 export default setHttpCacheControlHeader;
 
 export const disableHttpCaching = (res: Response) => {
-  res.set('Cache-control', 'no-store, no-cache');
+  res.set(
+    'Cache-control',
+    'no-store, no-cache, max-age=0, must-revalidate, proxy-revalidate'
+  );
 };
