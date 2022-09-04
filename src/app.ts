@@ -34,7 +34,8 @@ app.engine(
  * and registers tsx as the default view engine
  */
 setupReactViews(app, {
-  viewsDirectory: path.join(__dirname, 'views')
+  viewsDirectory: path.join(__dirname, 'views'),
+  doctype: ''
 });
 
 // json response formatting
