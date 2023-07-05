@@ -1,6 +1,6 @@
 <div align="center">
     <h1>Data Card for Spotify</h1>
-    <a href="https://www.data-card-for-spotify.com">
+    <a href="https://data-card-for-spotify.herokuapp.com">
       <img src="docs/basic.svg" alt="Data Card for Spotify">
     </a>
     <br>
@@ -21,7 +21,7 @@
 
 ## Generating a Data Card
 
-To generate your own data card, simply navigate to [the website](https://www.data-card-for-spotify.com) and click the "Generate Card" button. This will prompt you to log in to your Spotify account and allow the service to access your Spotify account data and activity. After clicking "Agree" your data card will be generated.
+To generate your own data card, simply navigate to [the website](https://data-card-for-spotify.herokuapp.com) and click the "Generate Card" button. This will prompt you to log in to your Spotify account and allow the service to access your Spotify account data and activity. After clicking "Agree" your data card will be generated.
 
 On the home page, you can click the "Copy Code" button to copy the HTML which you would then paste into your README.md file or website code to embed the data card. You can also click the "Full Card View" button to view the "card page," which displays an interactive version of your data card.
 
@@ -74,18 +74,18 @@ To render a data card with any of the customization options, simply append them 
 URL for basic data card:
 
 ```md
-https://data-card-for-spotify.com/api/card?user_id=12146253656
+https://data-card-for-spotify.herokuapp.com/api/card?user_id=12146253656
 ```
 
 URL for data card with border (`&show_border=true`):
 
 ```md
-https://data-card-for-spotify.com/api/card?user_id=12146253656&show_border=true
+https://data-card-for-spotify.herokuapp.com/api/card?user_id=12146253656&show_border=true
 ```
 
 > **Note 1:** Setting a boolean option to `1` has the same effect as setting it to `true`.
 
-> **Note 2:** The card page of the website at [data-card-for-spotify.com/card](https://www.data-card-for-spotify.com/card) grabs the query params of the page's URL and passes them along to the URL of the interactive data card that gets rendered on the page. This means that you can customize data cards on the site itself and share them from there.
+> **Note 2:** The card page of the website at [data-card-for-spotify.herokuapp.com/card](https://data-card-for-spotify.herokuapp.com/card) grabs the query params of the page's URL and passes them along to the URL of the interactive data card that gets rendered on the page. This means that you can customize data cards on the site itself and share them from there.
 
 ### Examples
 
