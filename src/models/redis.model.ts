@@ -19,7 +19,7 @@ export default class Redis {
 
   static #client = createClient({ url: REDIS_URI });
 
-  static async #getFromOrSaveToCache<T>(
+  static async #getFromCacheOrGetAndSaveToCache<T>(
     key: string,
     fallbackFunction: Function,
     expiration?: number
@@ -32,9 +32,7 @@ export default class Redis {
       // don't throw
       console.log(error);
     }
-    if (data) {
-      return JSON.parse(data);
-    }
+    if (data) return JSON.parse(data);
 
     // run fallback function
     const freshData = await fallbackFunction();
@@ -42,9 +40,10 @@ export default class Redis {
     // save to cache
     try {
       typeof expiration === 'number'
-        ? await this.#client.setEx(key, expiration, JSON.stringify(freshData))
-        : await this.#client.set(key, JSON.stringify(freshData));
+        ? this.#client.setEx(key, expiration, JSON.stringify(freshData))
+        : this.#client.set(key, JSON.stringify(freshData));
     } catch (error) {
+      // don't throw
       console.log(error);
     }
 
@@ -95,25 +94,25 @@ export default class Redis {
     return JSON.parse(profile || 'null');
   }
 
-  static getTopTracksFromOrSaveToCache(
+  static getTopTracksFromCacheOrGetAndSaveToCache(
     userId: string,
     hideExplicit: boolean,
     limit: number,
     fallbackFunction: Function
   ): Promise<Track[]> {
-    return this.#getFromOrSaveToCache(
+    return this.#getFromCacheOrGetAndSaveToCache(
       getTopTracksCacheKey(userId, hideExplicit, limit),
       fallbackFunction,
       DEFAULT_EXPIRATION
     );
   }
 
-  static getTopArtistsFromOrSaveToCache(
+  static getTopArtistsFromCacheOrGetAndSaveToCache(
     userId: string,
     limit: number,
     fallbackFunction: Function
   ): Promise<Artist[]> {
-    return this.#getFromOrSaveToCache(
+    return this.#getFromCacheOrGetAndSaveToCache(
       getTopArtistsCacheKey(userId, limit),
       fallbackFunction,
       DEFAULT_EXPIRATION
@@ -122,11 +121,11 @@ export default class Redis {
 
   // images
 
-  static getImageDataFromOrSaveToCache(
+  static getImageDataFromCacheOrGetAndSaveToCache(
     imageId: string,
     fallbackFunction: Function
   ): Promise<string> {
-    return this.#getFromOrSaveToCache(
+    return this.#getFromCacheOrGetAndSaveToCache(
       getImageCacheKey(imageId),
       fallbackFunction
     );
@@ -136,11 +135,13 @@ export default class Redis {
 
   static async deleteTokenMapAndUserDataFromCache(
     userId: string
-  ): Promise<void> {
-    await this.#client.del(getTokenMapCacheKey(userId));
-    await this.#client.del(getUserProfileCacheKey(userId));
-    await this.#client.eval(getTopItemCacheDeletionScript(userId, 'Track'));
-    await this.#client.eval(getTopItemCacheDeletionScript(userId, 'Artist'));
+  ): Promise<any[]> {
+    return Promise.all([
+      this.#client.del(getTokenMapCacheKey(userId)),
+      this.#client.del(getUserProfileCacheKey(userId)),
+      this.#client.eval(getTopItemCacheDeletionScript(userId, 'Track')),
+      this.#client.eval(getTopItemCacheDeletionScript(userId, 'Artist'))
+    ]);
   }
 }
 

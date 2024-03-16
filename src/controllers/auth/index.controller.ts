@@ -76,8 +76,7 @@ export const auth_callback: RequestHandler = async (req, res) => {
   const refreshToken = refresh_token!;
   let userId;
   try {
-    const { id } = await User.getUserProfile(access_token);
-    userId = id;
+    ({ id: userId } = await User.getUserProfile(access_token));
   } catch (error) {
     redirectToHomePageWithError(res, error as string);
     return;

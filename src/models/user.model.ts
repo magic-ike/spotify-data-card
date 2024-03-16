@@ -55,7 +55,7 @@ export default class User {
     // save profile to cache if necessary
     if (fetchedUserId !== null) {
       try {
-        await Redis.saveUserProfileToCache(fetchedUserId, profile);
+        Redis.saveUserProfileToCache(fetchedUserId, profile);
       } catch (error) {
         console.log(error);
       }
@@ -130,9 +130,7 @@ export default class User {
     }
 
     // hide explicit tracks if necessary
-    let trackDataArray = response.data.items.map(
-      (item) => item.track
-    ) as TrackResponseBody[];
+    let trackDataArray = response.data.items.map((item) => item.track);
     if (hideExplicit) {
       trackDataArray = trackDataArray.filter(
         (trackData) => !trackData.explicit
@@ -156,7 +154,7 @@ export default class User {
     hideExplicit: boolean,
     limit: number
   ): Promise<Track[]> {
-    return Redis.getTopTracksFromOrSaveToCache(
+    return Redis.getTopTracksFromCacheOrGetAndSaveToCache(
       userId,
       hideExplicit,
       limit,
@@ -204,29 +202,33 @@ export default class User {
     accessToken: string,
     limit: number
   ): Promise<Artist[]> {
-    return Redis.getTopArtistsFromOrSaveToCache(userId, limit, async () => {
-      // fetch top artists
-      let response;
-      try {
-        response = await axios.get<TopItemsResponseBody>(
-          `${TOP_ARTISTS_ENDPOINT}?limit=${limit}`,
-          {
-            headers: {
-              Authorization: `Bearer ${accessToken}`
+    return Redis.getTopArtistsFromCacheOrGetAndSaveToCache(
+      userId,
+      limit,
+      async () => {
+        // fetch top artists
+        let response;
+        try {
+          response = await axios.get<TopItemsResponseBody>(
+            `${TOP_ARTISTS_ENDPOINT}?limit=${limit}`,
+            {
+              headers: {
+                Authorization: `Bearer ${accessToken}`
+              }
             }
-          }
-        );
-      } catch (error) {
-        throw (error as AxiosError).message;
-      }
+          );
+        } catch (error) {
+          throw (error as AxiosError).message;
+        }
 
-      // resolve with artists
-      const artistDataArray = response.data.items as ArtistResponseBody[];
-      return artistDataArray.map((artistData) => ({
-        name: artistData.name,
-        imageUrl: artistData.images[2].url,
-        url: artistData.external_urls.spotify
-      }));
-    });
+        // resolve with artists
+        const artistDataArray = response.data.items as ArtistResponseBody[];
+        return artistDataArray.map((artistData) => ({
+          name: artistData.name,
+          imageUrl: artistData.images[2].url,
+          url: artistData.external_urls.spotify
+        }));
+      }
+    );
   }
 }

@@ -5,6 +5,7 @@ import User from '../../models/user.model';
 import Image from '../../models/image.model';
 import CardGetRequestQueryParams from '../../interfaces/card-get-request-query-params.interface';
 import CardDeleteRequestQueryParams from '../../interfaces/card-delete-request-query-params.interface';
+import UserProfileResponseBody from '../../interfaces/user-profile-response-body.interface';
 import Track from '../../interfaces/track.interface';
 import Artist from '../../interfaces/artist.interface';
 import DataCardProps from '../../interfaces/data-card-props.interface';
@@ -24,7 +25,7 @@ export const card_get: RequestHandler = async (req, res) => {
   const browserIsBuggy = detectBuggyBrowser(req);
 
   // validate user id query param
-  const cardReqBody = req.query as unknown as CardGetRequestQueryParams;
+  const cardReqBody = req.query as CardGetRequestQueryParams;
   const { user_id: userId, show_border } = cardReqBody;
   const showBorder = boolFromString(show_border);
   if (!userId) {
@@ -41,21 +42,6 @@ export const card_get: RequestHandler = async (req, res) => {
   let accessToken;
   try {
     accessToken = await TokenMap.getLatestAccessToken(userId);
-  } catch (error) {
-    renderErrorCard(
-      res,
-      getGenericErrorMessage(userId),
-      showBorder,
-      browserIsBuggy
-    );
-    return;
-  }
-
-  // fetch user display name
-  let userDisplayName;
-  try {
-    const { display_name } = await User.getUserProfile(accessToken);
-    userDisplayName = display_name;
   } catch (error) {
     renderErrorCard(
       res,
@@ -95,6 +81,40 @@ export const card_get: RequestHandler = async (req, res) => {
     limit
   );
 
+  // create data-fetching tasks
+  const tasks: (Promise<any> | (Track | Artist)[] | null)[] = [
+    User.getUserProfile(accessToken),
+    showNowPlaying ? User.getNowPlaying(accessToken, hideExplicit) : null,
+    showRecentlyPlayed
+      ? User.getRecentlyPlayed(accessToken, hideExplicit, itemLimit)
+      : [],
+    showTopTracks
+      ? User.getTopTracks(userId, accessToken, hideExplicit, itemLimit)
+      : [],
+    showTopArtists ? User.getTopArtists(userId, accessToken, itemLimit) : []
+  ];
+
+  // run all tasks concurrently
+  let userProfile: UserProfileResponseBody | null = null;
+  let userDisplayName: string | null = null;
+  let nowPlaying: Track | null = null;
+  let recentlyPlayed: Track[] = [];
+  let topTracks: Track[] = [];
+  let topArtists: Artist[] = [];
+  try {
+    [userProfile, nowPlaying, recentlyPlayed, topTracks, topArtists] =
+      await Promise.all(tasks);
+    userDisplayName = userProfile!.display_name;
+  } catch (error) {
+    renderErrorCard(
+      res,
+      getGenericErrorMessage(userId),
+      showBorder,
+      browserIsBuggy
+    );
+    return;
+  }
+
   // render error card if no data is visible
   if (
     !showNowPlaying &&
@@ -109,79 +129,6 @@ export const card_get: RequestHandler = async (req, res) => {
       browserIsBuggy
     );
     return;
-  }
-
-  // fetch currently playing track
-  let nowPlaying = null;
-  if (showNowPlaying) {
-    try {
-      nowPlaying = await User.getNowPlaying(accessToken, hideExplicit);
-    } catch (error) {
-      renderErrorCard(
-        res,
-        getGenericErrorMessage(userId, userDisplayName),
-        showBorder,
-        browserIsBuggy
-      );
-      return;
-    }
-  }
-
-  // fetch recently played tracks
-  let recentlyPlayed: Track[] = [];
-  if (showRecentlyPlayed) {
-    try {
-      recentlyPlayed = await User.getRecentlyPlayed(
-        accessToken,
-        hideExplicit,
-        itemLimit
-      );
-    } catch (error) {
-      renderErrorCard(
-        res,
-        getGenericErrorMessage(userId, userDisplayName),
-        showBorder,
-        browserIsBuggy
-      );
-      return;
-    }
-  }
-
-  // fetch top tracks
-  let topTracks: Track[] = [];
-  if (showTopTracks) {
-    try {
-      topTracks = await User.getTopTracks(
-        userId,
-        accessToken,
-        hideExplicit,
-        itemLimit
-      );
-    } catch (error) {
-      renderErrorCard(
-        res,
-        getGenericErrorMessage(userId, userDisplayName),
-        showBorder,
-        browserIsBuggy
-      );
-      return;
-    }
-  }
-
-  // fetch top artists
-  let topArtists: Artist[] = [];
-  if (showTopArtists) {
-    try {
-      topArtists = await User.getTopArtists(userId, accessToken, itemLimit);
-    } catch (error) {
-      renderErrorCard(
-        res,
-        getGenericErrorMessage(userId, userDisplayName),
-        showBorder,
-        browserIsBuggy
-      );
-      return;
-    }
   }
 
   // disable http caching if real-time data is requested
@@ -217,21 +164,10 @@ export const card_get: RequestHandler = async (req, res) => {
   res.render(CARD_API_VIEW_PATH, dataCardProps);
 };
 
-export const CARD_API_ERROR_MESSAGE = {
-  NO_USER_ID: 'Missing required parameter: user_id',
-  NO_TOKEN: 'No token provided.',
-  INVALID_AUTH: 'Only valid bearer authentication supported.',
-  CARD_NOT_FOUND: 'Data card not found.',
-  INVALID_TOKEN: 'Invalid token.'
-};
-export const CARD_API_DELETION_SUCCESS_MESSAGE =
-  'Data card deleted successfully.';
-
 // deletes a data card
 export const card_delete: RequestHandler = async (req, res) => {
   // validate user id query param
-  const { user_id: userId } =
-    req.query as unknown as CardDeleteRequestQueryParams;
+  const { user_id: userId } = req.query as CardDeleteRequestQueryParams;
   if (!userId) {
     res.status(400).send(CARD_API_ERROR_MESSAGE.NO_USER_ID);
     return;
@@ -286,6 +222,17 @@ export const card_delete: RequestHandler = async (req, res) => {
   res.send(CARD_API_DELETION_SUCCESS_MESSAGE);
 };
 
+export const CARD_API_ERROR_MESSAGE = {
+  NO_USER_ID: 'Missing required parameter: user_id',
+  NO_TOKEN: 'No token provided.',
+  INVALID_AUTH: 'Only valid bearer authentication supported.',
+  CARD_NOT_FOUND: 'Data card not found.',
+  INVALID_TOKEN: 'Invalid token.'
+};
+
+export const CARD_API_DELETION_SUCCESS_MESSAGE =
+  'Data card deleted successfully.';
+
 // helpers
 
 const detectBuggyBrowser = (req: Request) => {
@@ -312,8 +259,6 @@ const renderErrorCard = (
   });
 };
 
-const getGenericErrorMessage = (userId: string, userDisplayName?: string) => {
-  return `Card not found! ${
-    userDisplayName || `The user with ID ${userId}`
-  } may need to generate/re-generate a data card at ${SHORT_URL}.`;
+const getGenericErrorMessage = (userId: string) => {
+  return `Card not found! The user with ID ${userId} may need to generate/re-generate a data card at ${SHORT_URL}.`;
 };

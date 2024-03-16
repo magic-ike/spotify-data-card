@@ -62,7 +62,7 @@ export default class TokenMap extends MongoTokenMap {
 
     // save to cache
     try {
-      await Redis.saveTokenMapToCache(userId, tokenMap);
+      Redis.saveTokenMapToCache(userId, tokenMap);
     } catch (error) {
       console.log(error);
     }
@@ -103,7 +103,7 @@ export default class TokenMap extends MongoTokenMap {
 
     // save to cache
     try {
-      await Redis.saveTokenMapToCache(userId, tokenMap);
+      Redis.saveTokenMapToCache(userId, tokenMap);
     } catch (error) {
       console.log(error);
     }
@@ -118,15 +118,13 @@ export default class TokenMap extends MongoTokenMap {
     } catch (error) {
       throw (error as Error).message;
     }
-    if (!tokenMap) {
-      throw `Token map with user ID '${userId}' didn't exist.`;
-    }
+    if (!tokenMap) throw `Token map with user ID '${userId}' didn't exist.`;
 
-    // delete from cache
+    // delete from cache (await)
     try {
       await Redis.deleteTokenMapAndUserDataFromCache(userId);
     } catch (error) {
-      console.log(error);
+      throw 'Failed to delete token map from cache server.';
     }
 
     return tokenMap;
@@ -162,17 +160,17 @@ TokenMap.getLatestAccessToken = async function (
   // get tokens from token map and update access token if it's expired
   let { accessToken } = tokenMap;
   const { refreshToken, accessTokenExpiresAt } = tokenMap;
-  if (accessTokenExpiresAt <= Date.now()) {
+  if ((accessTokenExpiresAt as number) <= Date.now()) {
     const { access_token, expires_in } =
       await Auth.getAccessTokenWithRefreshToken(refreshToken);
-    await this.updateAccessTokenInTokenMap(userId, access_token, expires_in);
+    this.updateAccessTokenInTokenMap(userId, access_token, expires_in);
     accessToken = access_token;
   }
 
   // save token map to cache if necessary
   if (!cacheHit) {
     try {
-      await Redis.saveTokenMapToCache(userId, tokenMap);
+      Redis.saveTokenMapToCache(userId, tokenMap);
     } catch (error) {
       console.log(error);
     }
