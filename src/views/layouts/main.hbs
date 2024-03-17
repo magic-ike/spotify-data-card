@@ -38,45 +38,48 @@
       src='https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js'
       defer
     ></script>
-    <script src='js/main.js' defer></script>
 
     {{#if (areEqual @exphbs.view (homePageView))}}
-      <script src='js/home.js' defer></script>
+    <script type="module" src='js/home.js' defer></script>
     {{else if (areEqual @exphbs.view (cardPageView))}}
-      <script src='js/card.js' defer></script>
+    <script type="module" src='js/card.js' defer></script>
     {{/if}}
 
   </head>
   <body>
     <div class="column-view container">
+
       {{> loading-view}}
+
       <div class="main-view">
         <h1 class='title'>{{siteTitle}}</h1>
         <p class='subtitle'>
 
           {{#if (areEqual @exphbs.view (homePageView))}}
-            {{pageDescription}}
+          {{pageDescription}}
           {{else if (areEqual @exphbs.view (cardPageView))}}
-            {{cardPageSubtitle}}
+          {{cardPageSubtitle}}
           {{/if}}
 
         </p>
         <div class='content'>
+
           {{{body}}}
+
         </div>
       </div>
     </div>
     <footer class='footer'>
       <a href='https://www.spotify.com' target='_blank' rel='noreferrer'>
         <img
-          class='spotify-logo'
-          src='images/Spotify_Logo_RGB_White.png'
+          class='spotify-icon'
+          src='images/Spotify_Icon_RGB_White.png'
           alt='spotify.com'
           height='30'
         >
         <img
-          class='spotify-icon'
-          src='images/Spotify_Icon_RGB_White.png'
+          class='spotify-logo'
+          src='images/Spotify_Logo_RGB_White.png'
           alt='spotify.com'
           height='30'
         >

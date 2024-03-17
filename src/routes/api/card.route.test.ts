@@ -1,14 +1,14 @@
 import request from 'supertest';
 import mongoose from 'mongoose';
-import app from '../../../src/app';
-import Redis from '../../../src/models/redis.model';
-import TokenMap from '../../../src/models/token-map.model';
-import { MONGODB_URI } from '../../../src/config/index.config';
-import { API_PATH, CARD_PATH } from '../../../src/utils/constant.util';
+import app from '../../app';
+import Redis from '../../models/redis.model';
+import TokenMap from '../../models/token-map.model';
+import { MONGODB_URI } from '../../config/index.config';
+import { API_PATH, CARD_PATH } from '../../utils/constant.util';
 import {
   CARD_API_DELETION_SUCCESS_MESSAGE,
   CARD_API_ERROR_MESSAGE
-} from '../../../src/controllers/api/card.controller';
+} from '../../controllers/api/card.controller';
 
 describe('GET ' + API_PATH + CARD_PATH, () => {
   describe('a successful response', () => {

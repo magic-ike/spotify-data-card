@@ -1,18 +1,14 @@
 import request from 'supertest';
 // @ts-ignore
 import app from '../../../dist/app';
-import {
-  CARD_PAGE_SUBTITLE,
-  CARD_PATH,
-  SITE_TITLE
-} from '../../../src/utils/constant.util';
+import { SITE_TITLE } from '../../utils/constant.util';
 
-describe('GET ' + CARD_PATH, () => {
+describe('GET /', () => {
   describe('a successful response', () => {
     let response: request.Response;
 
     beforeAll(async () => {
-      response = await request(app).get(CARD_PATH);
+      response = await request(app).get('/');
     });
 
     it('should have a 200 status code', () => {
@@ -23,8 +19,8 @@ describe('GET ' + CARD_PATH, () => {
       expect(response.headers['content-type']).toContain('html');
     });
 
-    it('should contain the site title and card page subtitle', () => {
-      expect(response.text).toContain(SITE_TITLE && CARD_PAGE_SUBTITLE);
+    it('should contain the site title', () => {
+      expect(response.text).toContain(SITE_TITLE);
     });
   });
 });

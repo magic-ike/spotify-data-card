@@ -78,7 +78,7 @@ export default function DataCard({
     cardHeight += CARD_TITLE_HEIGHT;
   } else {
     // card width
-    let minCardWidth = cardWidth + CELL_WIDTH;
+    const minCardWidth = cardWidth + CELL_WIDTH;
     for (const option of [showRecentlyPlayed, showTopTracks, showTopArtists]) {
       if (!option) continue;
       cardWidth += CELL_WIDTH;
@@ -106,7 +106,7 @@ export default function DataCard({
       xmlns="http://www.w3.org/2000/svg"
       role="img"
     >
-      <style>{generateDataCardCellCSS()}</style>
+      <style>{generateDataCardCSS()}</style>
       <foreignObject width="100%" height="100%">
         <div
           // @ts-ignore
@@ -359,7 +359,7 @@ const DataCardCell = ({
                   )}
                 </div>
                 {isNowPlaying(item, rank) && !browserIsBuggy && (
-                  <div className="bars">{generateBarContent()}</div>
+                  <div className="bars">{generateBarMarkup()}</div>
                 )}
               </>
             )}
@@ -424,8 +424,8 @@ const textOverflows = (
   return width > maxWidth;
 };
 
-const generateBarContent = () => {
-  let barContent: JSX.Element[] = [];
+const generateBarMarkup = () => {
+  const barContent: JSX.Element[] = [];
   for (let i = 0; i < BAR_COUNT; i++)
     barContent.push(<div className="bar" key={`bar-${i}`}></div>);
   return barContent;
@@ -442,237 +442,237 @@ const generateBarCSS = () => {
   return barCSS;
 };
 
-const generateDataCardCellCSS = () => {
+const generateDataCardCSS = () => {
   return `
-    * {
-      color: inherit;
-      font-family: inherit;
-      font-weight: inherit;
-      box-sizing: border-box;
-    }
+* {
+  color: inherit;
+  font-family: inherit;
+  font-weight: inherit;
+  box-sizing: border-box;
+}
 
-    :root {
-      --black: #121212;
-      --gray: #2a2a2a;
-      --light-gray: #b3b3b3;
-      --green: #1db954;
-      font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji;
-      font-weight: 500;
-    }
+:root {
+  --black: #121212;
+  --gray: #2a2a2a;
+  --light-gray: #b3b3b3;
+  --green: #1db954;
+  font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji;
+  font-weight: 500;
+}
 
-    a {
-      text-decoration: none;
-    }
+a {
+  text-decoration: none;
+}
 
-    img {
-      object-fit: cover;
-    }
+img {
+  object-fit: cover;
+}
 
-    .card-container {
-      background-color: var(--black);
-      color: white;
-      border-radius: 20px;
-      overflow: hidden;
-    }
+.card-container {
+  background-color: var(--black);
+  color: white;
+  border-radius: 20px;
+  overflow: hidden;
+}
 
-    .attribution {
-      height: ${ATTRIBUTION_HEIGHT}px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
+.attribution {
+  height: ${ATTRIBUTION_HEIGHT}px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
 
-    .spotify-link,
-    .spotify-logo {
-      height: 100%;
-    }
+.spotify-link,
+.spotify-logo {
+  height: 100%;
+}
 
-    .short-url {
-      font-size: ${BIG_TEXT_FONT_SIZE}px;
-    }
+.short-url {
+  font-size: ${BIG_TEXT_FONT_SIZE}px;
+}
 
-    .error-message {
-      color: red !important;
-    }
+.error-message {
+  color: red !important;
+}
 
-    .card-title {
-      font-size: ${CARD_TITLE_FONT_SIZE}px;
-      font-weight: 700;
-      line-height: ${CARD_TITLE_HEIGHT - CARD_SPACING * 2}px;
-      height: ${CARD_TITLE_HEIGHT}px;
-    }
+.card-title {
+  font-size: ${CARD_TITLE_FONT_SIZE}px;
+  font-weight: 700;
+  line-height: ${CARD_TITLE_HEIGHT - CARD_SPACING * 2}px;
+  height: ${CARD_TITLE_HEIGHT}px;
+}
 
-    .card-subtitle {
-      font-size: ${CARD_SUBTITLE_FONT_SIZE}px;
-      line-height: ${CARD_SUBTITLE_HEIGHT - CARD_SPACING * 2}px;
-      height: ${CARD_SUBTITLE_HEIGHT}px;
-    }
+.card-subtitle {
+  font-size: ${CARD_SUBTITLE_FONT_SIZE}px;
+  line-height: ${CARD_SUBTITLE_HEIGHT - CARD_SPACING * 2}px;
+  height: ${CARD_SUBTITLE_HEIGHT}px;
+}
 
-    .card-title,
-    .card-subtitle {
-      text-align: center;
-    }
+.card-title,
+.card-subtitle {
+  text-align: center;
+}
 
-    .attribution,
-    .card-title,
-    .card-subtitle {
-      border: ${CARD_SPACING}px solid var(--black);
-    }
+.attribution,
+.card-title,
+.card-subtitle {
+  border: ${CARD_SPACING}px solid var(--black);
+}
 
-    .now-playing-section {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
+.now-playing-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
 
-    .other-sections {
-      display: flex;
-      justify-content: center;
-    }
+.other-sections {
+  display: flex;
+  justify-content: center;
+}
 
-    .cell-container {
-      width: ${CELL_WIDTH}px;
-      height: ${CELL_HEIGHT}px;
-      display: flex;
-      align-items: center;
-      gap: ${CARD_SPACING}px;
-    }
+.cell-container {
+  width: ${CELL_WIDTH}px;
+  height: ${CELL_HEIGHT}px;
+  display: flex;
+  align-items: center;
+  gap: ${CARD_SPACING}px;
+}
 
-    .cell-container:hover {
-      background-color: var(--gray);
-    }
+.cell-container:hover {
+  background-color: var(--gray);
+}
 
-    .cell-container:hover
-    .explicit-tag {
-      color: var(--gray);
-    }
+.cell-container:hover
+.explicit-tag {
+  color: var(--gray);
+}
 
-    .card-container,
-    .cell-container {
-      padding: ${CARD_SPACING}px;
-    }
+.card-container,
+.cell-container {
+  padding: ${CARD_SPACING}px;
+}
 
-    .rank {
-      text-align: center;
-      width: ${RANK_WIDTH}px;
-    }
+.rank {
+  text-align: center;
+  width: ${RANK_WIDTH}px;
+}
 
-    .big-text {
-      font-size: ${BIG_TEXT_FONT_SIZE}px;
-    }
+.big-text {
+  font-size: ${BIG_TEXT_FONT_SIZE}px;
+}
 
-    .text-container {
-      width: ${TEXT_CONTENT_WIDTH}px;
-    }
+.text-container {
+  width: ${TEXT_CONTENT_WIDTH}px;
+}
 
-    .track-title {
-      margin-bottom: 3px;
-    }
+.track-title {
+  margin-bottom: 3px;
+}
 
-    .track-subtitle {
-      color: var(--light-gray);
-      font-weight: 400;
-    }
+.track-subtitle {
+  color: var(--light-gray);
+  font-weight: 400;
+}
 
-    .track-title,
-    .track-subtitle {
-      font-size: ${TEXT_FONT_SIZE}px;
-    }
+.track-title,
+.track-subtitle {
+  font-size: ${TEXT_FONT_SIZE}px;
+}
 
-    .track-subtitle-flexbox {
-      display: flex;
-      align-items: center;
-    }
+.track-subtitle-flexbox {
+  display: flex;
+  align-items: center;
+}
 
-    .track-subtitle-flexbox > * {
-      flex-shrink: 0;
-    }
+.track-subtitle-flexbox > * {
+  flex-shrink: 0;
+}
 
-    .explicit-tag {
-      background-color: var(--light-gray);
-      color: var(--black);
-      font-size: 10px;
-      font-weight: 500;
-      text-align: center;
-      line-height: ${EXPLICIT_TAG_WIDTH}px;
-      width: ${EXPLICIT_TAG_WIDTH}px;
-      height: ${EXPLICIT_TAG_WIDTH}px;
-      border-radius: 2px;
-      margin-right: ${EXPLICIT_TAG_MARGIN}px;
-    }
+.explicit-tag {
+  background-color: var(--light-gray);
+  color: var(--black);
+  font-size: 10px;
+  font-weight: 500;
+  text-align: center;
+  line-height: ${EXPLICIT_TAG_WIDTH}px;
+  width: ${EXPLICIT_TAG_WIDTH}px;
+  height: ${EXPLICIT_TAG_WIDTH}px;
+  border-radius: 2px;
+  margin-right: ${EXPLICIT_TAG_MARGIN}px;
+}
 
-    .track-subtitle-text.no-scroll {
-      flex: 1;
-    }
+.track-subtitle-text.no-scroll {
+  flex: 1;
+}
 
-    .not-playing {
-      text-align: center;
-      width: 100%;
-    }
-    
-    /* scrolling animation */
+.not-playing {
+  text-align: center;
+  width: 100%;
+}
 
-    .no-scroll {
-      text-overflow: ellipsis;
-    }
+/* scrolling animation */
 
-    .no-scroll,
-    .scrolling-container {
-      overflow: hidden;
-      white-space: nowrap;
-    }
+.no-scroll {
+  text-overflow: ellipsis;
+}
 
-    .scrolling {
-      padding-right: 20px;
-      display: inline-block;
-      animation: marquee 10s linear infinite;
-    }
+.no-scroll,
+.scrolling-container {
+  overflow: hidden;
+  white-space: nowrap;
+}
 
-    @keyframes marquee {
-      20% {
-        transform: translateX(0);
-      }
+.scrolling {
+  padding-right: 20px;
+  display: inline-block;
+  animation: marquee 10s linear infinite;
+}
 
-      100% {
-        transform: translateX(-100%);
-      }
-    }
+@keyframes marquee {
+  20% {
+    transform: translateX(0);
+  }
 
-    /* /scrolling animation */
+  100% {
+    transform: translateX(-100%);
+  }
+}
 
-    /* sound animation */
+/* /scrolling animation */
 
-    .bars {
-      width: ${TEXT_CONTENT_WIDTH}px;
-      height: 6px;
-      margin: -6px 0 0 0;
-      overflow: hidden;
-      position: absolute;
-    }
+/* sound animation */
 
-    .bar {
-      background-color: var(--green);
-      width: ${BAR_WIDTH}px;
-      height: 3px;
-      position: absolute;
-      bottom: 1px;
-      animation: sound 0ms -800ms linear infinite alternate;
-    }
+.bars {
+  width: ${TEXT_CONTENT_WIDTH}px;
+  height: 6px;
+  margin: -6px 0 0 0;
+  overflow: hidden;
+  position: absolute;
+}
 
-    @keyframes sound {
-      0% {
-        opacity: .35;
-        height: 3px;
-      }
+.bar {
+  background-color: var(--green);
+  width: ${BAR_WIDTH}px;
+  height: 3px;
+  position: absolute;
+  bottom: 1px;
+  animation: sound 0ms -800ms linear infinite alternate;
+}
 
-      100% {
-        opacity: 1;
-        height: 6px;
-      }
-    }
+@keyframes sound {
+  0% {
+    opacity: .35;
+    height: 3px;
+  }
 
-    ${generateBarCSS()}
+  100% {
+    opacity: 1;
+    height: 6px;
+  }
+}
 
-    /* /sound animation */
-  `;
+${generateBarCSS()}
+
+/* /sound animation */
+`;
 };

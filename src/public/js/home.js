@@ -1,3 +1,7 @@
+import { showMainView, _copyCardCode } from './common.js';
+
+// initialization
+
 const USER_ID = 'userId';
 const REFRESH_TOKEN = 'refreshToken';
 const DEFAULT_DELAY_TIME = 400;
@@ -72,30 +76,30 @@ const clearHashParams = () => {
 
 // buttons
 
-const generateCard = () => {
+window.generateCard = () => {
   $('.gen-btn').hide();
   $('.gen-btn-group > .loading-btn').show();
   window.location.href = '/auth/login';
 };
 
-const copyCardCode = () => {
+window.copyCardCode = () => {
   const userId = localStorage.getItem(USER_ID);
   const [cardPageUrl, cardImageUrl] = getCardUrls(userId);
   _copyCardCode(cardPageUrl, cardImageUrl);
 };
 
-const goToCardPage = () => {
+window.goToCardPage = () => {
   const userId = localStorage.getItem(USER_ID);
   const [cardPageUrl] = getCardUrls(userId);
   window.location.href = cardPageUrl;
 };
 
-const logOut = () => {
+window.logOut = () => {
   localStorage.clear();
   renderPage();
 };
 
-const deleteCard = async () => {
+window.deleteCard = async () => {
   if (!confirm('Are you sure you want to delete your data card?')) return;
 
   const $deleteBtn = $('.delete-btn');
@@ -127,7 +131,7 @@ const deleteCard = async () => {
     return;
   }
 
-  logOut();
+  window.logOut();
 
   const responseMessage = await response.text();
   setTimeout(() => {

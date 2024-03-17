@@ -5,12 +5,12 @@ import {
   AUTH_PATH,
   CALLBACK_PATH,
   LOGIN_PATH
-} from '../../../src/utils/constant.util';
+} from '../../utils/constant.util';
 import {
   SPOTIFY_AUTH_URL,
   AUTH_ERROR_MESSAGE,
   AUTH_STATE_COOKIE_KEY
-} from '../../../src/controllers/auth/index.controller';
+} from '../../controllers/auth/index.controller';
 
 describe('GET ' + AUTH_PATH + LOGIN_PATH, () => {
   describe('a successful response', () => {

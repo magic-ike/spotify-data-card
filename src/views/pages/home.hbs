@@ -4,19 +4,19 @@
     etc.
   </div>
   <div class="gen-btn-group">
-    {{> loading-button}}
     <button class='btn gen-btn' onclick='generateCard()'>Generate Card</button>
+    {{> loading-button}}
   </div>
 </div>
 
-<div class='column-view logged-in-view'>
+<div class='column-view logged-in-view' hidden>
   {{#> button-row}}
     <button class='btn copy-code-btn' onclick='copyCardCode()'>Copy Code</button>
     <button class='btn card-btn' onclick='goToCardPage()'>Full Card View</button>
     <button class='btn logout-btn' onclick='logOut()'>Log Out</button>
     <div class="delete-btn-group">
-      {{> loading-button}}
       <button class='btn delete-btn' onclick='deleteCard()'>Delete Card</button>
+      {{> loading-button}}
     </div>
   {{/button-row}}
   <a class='data-card-link'>

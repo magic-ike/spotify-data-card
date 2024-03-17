@@ -16,7 +16,7 @@
   --spotify-green: #1db954;
   --spotify-black: #191414;
   --spotify-bg: #1ae68c;
-  --std-spacing: 3rem;
+  --std-spacing: 2rem;
   --content-max-width: 920px;
   --footer-height: 5rem;
   --btn-row-gap: 1rem;
@@ -25,8 +25,10 @@
 
   background-color: var(--spotify-black);
   color: var(--spotify-black);
+  font-size: 14px;
   font-family: Circular, Helvetica, Arial, sans-serif;
   text-align: center;
+  min-width: 500px;
 }
 
 a {
@@ -56,7 +58,7 @@ a:hover {
 }
 
 .title {
-  font-size: 3rem;
+  font-size: 2.4rem;
   font-weight: 900;
 }
 
@@ -81,7 +83,7 @@ a:hover {
   gap: var(--std-spacing);
 }
 
-.spotify-icon {
+.spotify-logo {
   display: none;
 }
 
@@ -92,22 +94,22 @@ a:hover {
   text-overflow: ellipsis;
 }
 
-@media (max-width: 768px) {
+@media (min-width: 768px) {
   :root {
-    --std-spacing: 2rem;
-    font-size: 14px;
+    --std-spacing: 3rem;
+    font-size: unset;
   }
 
   .title {
-    font-size: 2.4rem;
-  }
-
-  .spotify-logo {
-    display: none;
+    font-size: 3rem;
   }
 
   .spotify-icon {
-    display: block;
+    display: none;
+  }
+
+  .spotify-logo {
+    display: unset;
   }
 }
 
@@ -117,6 +119,7 @@ a:hover {
   max-width: 200px;
 }
 
+.loading-view,
 .loading-img-container,
 .loading-img {
   width: 100%;
@@ -131,7 +134,7 @@ a:hover {
   width: 4rem;
 }
 
-/* common styles */
+/* misc */
 
 .content .column-view {
   gap: var(--std-spacing);

@@ -1,3 +1,7 @@
+import { showMainView, _copyCardCode } from './common.js';
+
+// initialization
+
 $(() => {
   renderPage();
 });
@@ -15,18 +19,18 @@ const renderPage = () => {
 
 // buttons
 
-const copyCardCode = () => {
+window.copyCardCode = () => {
   const [cardPageUrl, cardImageUrl] = getCardUrls();
   _copyCardCode(cardPageUrl, cardImageUrl);
 };
 
-const copyCardPageLink = async () => {
+window.copyCardPageLink = async () => {
   const [cardPageUrl] = getCardUrls();
   await navigator.clipboard.writeText(cardPageUrl);
   alert('Link copied to clipboard!');
 };
 
-const goToHomePage = () => {
+window.goToHomePage = () => {
   window.location.href = '/';
 };
 

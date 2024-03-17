@@ -1,18 +1,22 @@
 {
   "name": "spotify-data-card",
   "version": "1.0.0",
-  "description": "",
+  "description": "Share your music taste with the world.",
   "main": "dist/index.js",
   "scripts": {
     "start": "node .",
     "dev": "nodemon src/index.ts",
-    "build": "rimraf dist && tsc -p tsconfig.build.json && copyup 'src/views/**/*.hbs' 'src/public/**/*' dist",
-    "lint": "eslint . --ext .ts",
-    "lint:fix": "eslint . --ext .ts --fix",
-    "test": "jest",
-    "test:coverage": "jest --coverage",
+    "build": "rimraf dist && tsc -p tsconfig.build.json && copyup 'src/views/**/*.hbs' 'src/public/**/*' -e 'src/public/**/*.js' dist && webpack",
+    "lint": "eslint --ext .ts,.tsx src",
+    "lint:fix": "eslint --ext .ts,.tsx src --fix",
+    "test": "jest --testPathPattern=dist",
+    "test:coverage": "jest --testPathPattern=dist --coverage --collectCoverageFrom=dist/**/*.js",
+    "test:dev": "jest --testPathPattern=src",
+    "test:dev:coverage": "jest --testPathPattern=src --coverage --collectCoverageFrom=src/**/*.{js,ts,tsx}",
+    "test:all": "yarn test:dev && yarn test",
+    "test:all:coverage": "yarn test:dev && jest --testPathPattern=src --coverage --collectCoverageFrom={src,dist}/**/*.{js,ts,tsx}",
     "build+test": "yarn build && yarn test",
-    "heroku-postbuild": "yarn lint && yarn build+test"
+    "heroku-postbuild": "yarn lint && yarn build+test && rimraf dist/**/*.test.js"
   },
   "keywords": [],
   "author": "Ike Ofoegbu",
@@ -33,6 +37,8 @@
     "string-pixel-width": "^1.10.0"
   },
   "devDependencies": {
+    "@babel/core": "^7.24.0",
+    "@babel/preset-env": "^7.24.0",
     "@types/cookie-parser": "^1.4.3",
     "@types/cors": "^2.8.12",
     "@types/express": "^4.17.13",
@@ -43,6 +49,7 @@
     "@types/supertest": "^2.0.12",
     "@typescript-eslint/eslint-plugin": "^5.22.0",
     "@typescript-eslint/parser": "^5.22.0",
+    "babel-loader": "^9.1.3",
     "copyfiles": "^2.4.1",
     "eslint": "^8.14.0",
     "eslint-config-prettier": "^8.5.0",
@@ -54,6 +61,8 @@
     "supertest": "^6.2.3",
     "ts-jest": "^28.0.1",
     "ts-node": "^10.7.0",
-    "typescript": "^4.6.4"
+    "typescript": "^4.6.4",
+    "webpack": "^5.90.3",
+    "webpack-cli": "^5.1.4"
   }
 }
