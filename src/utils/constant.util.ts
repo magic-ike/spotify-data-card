@@ -1,4 +1,5 @@
 // config
+export const DEV_NODE_ENV = 'development';
 export const PROD_NODE_ENV = 'production';
 
 // routes

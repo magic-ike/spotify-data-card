@@ -2,22 +2,22 @@ import { showMainView, _copyCardCode } from './common.js';
 
 // initialization
 
-const USER_ID = 'userId';
-const REFRESH_TOKEN = 'refreshToken';
-const DEFAULT_DELAY_TIME = 400;
+const USER_ID_KEY = 'userId';
+const REFRESH_TOKEN_KEY = 'refreshToken';
+const DEFAULT_TIMEOUT_DELAY_MS = 400;
 
 $(() => {
   renderPage();
   setTimeout(() => {
     checkForHashParams();
-  }, DEFAULT_DELAY_TIME);
+  }, DEFAULT_TIMEOUT_DELAY_MS);
 });
 
-// rendering
+// renderer
 
 const renderPage = () => {
-  const userId = localStorage.getItem(USER_ID);
-  const refreshToken = localStorage.getItem(REFRESH_TOKEN);
+  const userId = localStorage.getItem(USER_ID_KEY);
+  const refreshToken = localStorage.getItem(REFRESH_TOKEN_KEY);
   const loggedIn = userId && refreshToken;
 
   const $loadingImgContainer = $('.loading-img-container');
@@ -45,15 +45,15 @@ const renderPage = () => {
   showMainView();
 };
 
-// hash params
+// hash param handlers
 
 const checkForHashParams = () => {
   const { error, user_id, refresh_token } = getHashParams();
   if (error) {
     alert(`Failed to generate data card. Error: ${error}`);
   } else if (user_id && refresh_token) {
-    localStorage.setItem(USER_ID, user_id);
-    localStorage.setItem(REFRESH_TOKEN, refresh_token);
+    localStorage.setItem(USER_ID_KEY, user_id);
+    localStorage.setItem(REFRESH_TOKEN_KEY, refresh_token);
     alert('Data card generated!');
     renderPage();
   }
@@ -74,7 +74,7 @@ const clearHashParams = () => {
   history.replaceState('', document.title, window.location.pathname);
 };
 
-// buttons
+// button click handlers
 
 window.generateCard = () => {
   $('.gen-btn').hide();
@@ -83,13 +83,13 @@ window.generateCard = () => {
 };
 
 window.copyCardCode = () => {
-  const userId = localStorage.getItem(USER_ID);
+  const userId = localStorage.getItem(USER_ID_KEY);
   const [cardPageUrl, cardImageUrl] = getCardUrls(userId);
   _copyCardCode(cardPageUrl, cardImageUrl);
 };
 
 window.goToCardPage = () => {
-  const userId = localStorage.getItem(USER_ID);
+  const userId = localStorage.getItem(USER_ID_KEY);
   const [cardPageUrl] = getCardUrls(userId);
   window.location.href = cardPageUrl;
 };
@@ -107,8 +107,8 @@ window.deleteCard = async () => {
   $deleteBtn.hide();
   $loadingBtn.show();
 
-  const userId = localStorage.getItem(USER_ID);
-  const refreshToken = localStorage.getItem(REFRESH_TOKEN);
+  const userId = localStorage.getItem(USER_ID_KEY);
+  const refreshToken = localStorage.getItem(REFRESH_TOKEN_KEY);
   const genericErrorMessage =
     'Something went wrong while trying to delete your data card!\nTry logging out, logging back in, then trying again.';
   let response;
@@ -136,7 +136,7 @@ window.deleteCard = async () => {
   const responseMessage = await response.text();
   setTimeout(() => {
     alert(responseMessage);
-  }, DEFAULT_DELAY_TIME);
+  }, DEFAULT_TIMEOUT_DELAY_MS);
 };
 
 // helpers

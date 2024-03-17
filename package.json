@@ -5,8 +5,9 @@
   "main": "dist/index.js",
   "scripts": {
     "start": "node .",
-    "dev": "nodemon src/index.ts",
-    "build": "rimraf dist && tsc -p tsconfig.build.json && copyup 'src/views/**/*.hbs' 'src/public/**/*' -e 'src/public/**/*.js' dist && webpack",
+    "dev": "nodemon --watch src --ext '*' src/index.ts",
+    "build": "rimraf dist && tsc -p tsconfig.build.json && copyup 'src/views/**/*.hbs' 'src/public/**/*' -e 'src/public/js/main/**/*' dist && webpack",
+    "build+start": "yarn build && yarn start",
     "lint": "eslint --ext .ts,.tsx src",
     "lint:fix": "eslint --ext .ts,.tsx src --fix",
     "test": "jest --testPathPattern=dist",

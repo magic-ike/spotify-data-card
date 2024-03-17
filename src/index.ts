@@ -7,18 +7,16 @@
  */
 import 'dotenv/config';
 import mongoose from 'mongoose';
-import app from './app';
 import Redis from './models/redis.model';
-import { PORT, MONGODB_URI } from './config/index.config';
+import app from './app';
+import { MONGODB_URI, PORT } from './config/index.config';
 
 mongoose
   .connect(MONGODB_URI)
-  .then(() => {
-    return Redis.connect();
-  })
-  .then(() => {
+  .then(() => Redis.connect())
+  .then(() =>
     app.listen(PORT, () =>
       console.log(`running server on http://localhost:${PORT}`)
-    );
-  })
+    )
+  )
   .catch((error) => console.log(error));

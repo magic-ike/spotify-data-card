@@ -5,7 +5,6 @@ import {
 } from '../utils/constant.util';
 
 // server
-/* no `NODE_ENV` constant is created because that environment variable should stay mutable */
 export const PORT = process.env.PORT || 8080;
 export const HBS_HELPERS = {
   siteTitle: () => SITE_TITLE,

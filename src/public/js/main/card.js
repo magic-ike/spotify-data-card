@@ -6,7 +6,7 @@ $(() => {
   renderPage();
 });
 
-// rendering
+// renderer
 
 const renderPage = () => {
   const $loadingImgContainer = $('.loading-img-container');
@@ -17,7 +17,7 @@ const renderPage = () => {
   $iDataCard.attr('data', cardImageUrl); // must be set AFTER the main view is visible
 };
 
-// buttons
+// button click handlers
 
 window.copyCardCode = () => {
   const [cardPageUrl, cardImageUrl] = getCardUrls();
