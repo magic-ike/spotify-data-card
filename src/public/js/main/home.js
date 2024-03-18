@@ -1,47 +1,45 @@
-import { showMainView, _copyCardCode } from './common.js';
+import {
+  DEFAULT_TIMEOUT_DELAY_MS,
+  showMainView,
+  _copyCardCode
+} from './common.js';
 
 // initialization
 
 const USER_ID_KEY = 'userId';
 const REFRESH_TOKEN_KEY = 'refreshToken';
-const DEFAULT_TIMEOUT_DELAY_MS = 400;
 
 $(() => {
-  renderPage();
-  setTimeout(() => {
-    checkForHashParams();
-  }, DEFAULT_TIMEOUT_DELAY_MS);
+  const userId = localStorage.getItem(USER_ID_KEY);
+  const refreshToken = localStorage.getItem(REFRESH_TOKEN_KEY);
+  if (userId && refreshToken) {
+    renderPage(userId);
+  } else {
+    setTimeout(checkForHashParams, DEFAULT_TIMEOUT_DELAY_MS);
+  }
 });
 
 // renderer
 
-const renderPage = () => {
-  const userId = localStorage.getItem(USER_ID_KEY);
-  const refreshToken = localStorage.getItem(REFRESH_TOKEN_KEY);
-  const loggedIn = userId && refreshToken;
-
+const renderPage = (userId) => {
   const $loadingImgContainer = $('.loading-img-container');
   const $dataCardLink = $('.data-card-link');
   const $dataCard = $('.data-card');
   const $loggedOutView = $('.logged-out-view');
   const $loggedInView = $('.logged-in-view');
-
-  if (!loggedIn) {
-    $dataCardLink.removeAttr('href');
-    $dataCard.removeAttr('src');
-
-    $loggedOutView.fadeIn();
-    $loggedInView.hide();
-  } else {
+  if (userId) {
     const [cardPageUrl, cardImageUrl] = getCardUrls(userId);
     $dataCardLink.attr('href', cardPageUrl);
     $dataCard.one('load', () => $loadingImgContainer.hide());
     $dataCard.attr('src', cardImageUrl);
-
     $loggedOutView.hide();
     $loggedInView.fadeIn();
+  } else {
+    $dataCardLink.removeAttr('href');
+    $dataCard.removeAttr('src');
+    $loggedOutView.fadeIn();
+    $loggedInView.hide();
   }
-
   showMainView();
 };
 
@@ -55,14 +53,17 @@ const checkForHashParams = () => {
     localStorage.setItem(USER_ID_KEY, user_id);
     localStorage.setItem(REFRESH_TOKEN_KEY, refresh_token);
     alert('Data card generated!');
-    renderPage();
+    clearHashParams();
+    renderPage(user_id);
+    return;
   }
   clearHashParams();
+  renderPage(null);
 };
 
 const getHashParams = () => {
   const params = {};
-  const queryString = window.location.hash.slice(1);
+  const queryString = location.hash.slice(1);
   const regex = /([^&;=]+)=?([^&;]*)/g;
   let execArray;
   while ((execArray = regex.exec(queryString)))
@@ -71,7 +72,7 @@ const getHashParams = () => {
 };
 
 const clearHashParams = () => {
-  history.replaceState('', document.title, window.location.pathname);
+  history.replaceState(null, '', location.pathname);
 };
 
 // button click handlers
@@ -79,7 +80,7 @@ const clearHashParams = () => {
 window.generateCard = () => {
   $('.gen-btn').hide();
   $('.gen-btn-group > .loading-btn').show();
-  window.location.href = '/auth/login';
+  location.href = '/auth/login';
 };
 
 window.copyCardCode = () => {
@@ -91,12 +92,12 @@ window.copyCardCode = () => {
 window.goToCardPage = () => {
   const userId = localStorage.getItem(USER_ID_KEY);
   const [cardPageUrl] = getCardUrls(userId);
-  window.location.href = cardPageUrl;
+  location.href = cardPageUrl;
 };
 
 window.logOut = () => {
   localStorage.clear();
-  renderPage();
+  renderPage(null);
 };
 
 window.deleteCard = async () => {
@@ -130,19 +131,16 @@ window.deleteCard = async () => {
     $loadingBtn.hide();
     return;
   }
-
-  window.logOut();
+  logOut();
 
   const responseMessage = await response.text();
-  setTimeout(() => {
-    alert(responseMessage);
-  }, DEFAULT_TIMEOUT_DELAY_MS);
+  setTimeout(() => alert(responseMessage), DEFAULT_TIMEOUT_DELAY_MS);
 };
 
 // helpers
 
 const getCardUrls = (userId) => {
-  const cardPageUrl = `${window.location.origin}/card?user_id=${userId}`;
+  const cardPageUrl = `${location.origin}/card?user_id=${userId}`;
   const cardImageUrl = cardPageUrl.replace('/card', '/api/card');
   return [cardPageUrl, cardImageUrl];
 };

@@ -19,6 +19,7 @@
   --std-spacing: 2rem;
   --content-max-width: 920px;
   --footer-height: 5rem;
+  --loading-img-max-height: 100px;
   --btn-row-gap: 1rem;
   --btn-height: 3rem;
   --btn-outline-width: 6px;
@@ -28,7 +29,7 @@
   font-size: 14px;
   font-family: Circular, Helvetica, Arial, sans-serif;
   text-align: center;
-  min-width: 500px;
+  min-width: 200px;
 }
 
 a {
@@ -44,6 +45,7 @@ a:hover {
   flex-direction: column;
   justify-content: center;
   align-items: center;
+  position: relative;
 }
 
 .container {
@@ -115,10 +117,6 @@ a:hover {
 
 /* partials */
 
-.loading-img {
-  max-width: 200px;
-}
-
 .loading-view,
 .loading-img-container,
 .loading-img {
@@ -134,6 +132,14 @@ a:hover {
   width: 4rem;
 }
 
+.loading-img-container {
+  position: absolute;
+}
+
+.loading-img {
+  max-width: 200px;
+}
+
 /* misc */
 
 .content .column-view {
@@ -141,7 +147,7 @@ a:hover {
 }
 
 .centered-row-container {
-  width: calc(100% + var(--std-spacing) * 2);
+  width: calc(100% + (var(--std-spacing) * 2));
   margin: 0 calc(var(--std-spacing) * -1);
   overflow-x: auto;
   scrollbar-width: none; /* firefox */
@@ -169,7 +175,7 @@ a:hover {
 }
 
 .btn-row {
-  height: calc(var(--btn-height) + calc(var(--btn-outline-width) * 2));
+  height: calc(var(--btn-height) + (var(--btn-outline-width) * 2));
   gap: var(--btn-row-gap);
 }
 
@@ -192,6 +198,11 @@ a:hover {
   box-shadow: 0 0 0 var(--btn-outline-width) transparent;
 }
 
+.btn:enabled:hover,
+.btn:enabled:active {
+  filter: brightness(0.95);
+}
+
 .btn:enabled:hover {
   cursor: pointer;
   transform: scale(1.05);
@@ -201,11 +212,6 @@ a:hover {
   box-shadow: 0 0 0 calc(var(--btn-outline-width) / 2) var(--spotify-bg),
     0 0 0 var(--btn-outline-width) white;
   transform: initial;
-}
-
-.btn:enabled:hover,
-.btn:enabled:active {
-  filter: brightness(0.95);
 }
 
 .data-card {
@@ -225,8 +231,22 @@ a:hover {
 
 .data-card-link {
   width: 100%;
+  min-height: var(--loading-img-max-height);
+}
+
+.data-card {
+  position: relative;
+  z-index: 1;
 }
 
 /* card page */
 
-/* nothing yet */
+.data-card-outer-container {
+  width: 100%;
+  min-height: var(--loading-img-max-height);
+}
+
+.data-card-middle-container {
+  position: relative;
+  z-index: 1;
+}

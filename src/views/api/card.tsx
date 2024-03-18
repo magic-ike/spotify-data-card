@@ -302,7 +302,6 @@ const DataCardCell = ({
               'data:image/jpeg;base64,' +
               imageDataMap[isTrack(item) ? item.albumImageUrl : item.imageUrl]
             }
-            alt=""
             width={CONTENT_HEIGHT}
             height={CONTENT_HEIGHT}
           />

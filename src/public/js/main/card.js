@@ -1,4 +1,8 @@
-import { showMainView, _copyCardCode } from './common.js';
+import {
+  DEFAULT_TIMEOUT_DELAY_MS,
+  showMainView,
+  _copyCardCode
+} from './common.js';
 
 // initialization
 
@@ -12,9 +16,15 @@ const renderPage = () => {
   const $loadingImgContainer = $('.loading-img-container');
   const $iDataCard = $('.interactive-data-card');
   const [_, cardImageUrl] = getCardUrls();
-  $iDataCard.one('load', () => $loadingImgContainer.hide());
+  $iDataCard.one('load', () =>
+    window.setTimeout(
+      () => $loadingImgContainer.hide(),
+      DEFAULT_TIMEOUT_DELAY_MS * 10
+    )
+  );
   showMainView();
-  $iDataCard.attr('data', cardImageUrl); // must be set AFTER the main view is visible
+  // this is set AFTER the main view is shown to prevent a bug where the data card never gets rendered
+  $iDataCard.attr('data', cardImageUrl);
 };
 
 // button click handlers
@@ -31,13 +41,13 @@ window.copyCardPageLink = async () => {
 };
 
 window.goToHomePage = () => {
-  window.location.href = '/';
+  location.href = '/';
 };
 
 // helpers
 
 const getCardUrls = () => {
-  const cardPageUrl = window.location.href;
+  const cardPageUrl = location.href;
   const cardImageUrl = cardPageUrl.replace('/card', '/api/card');
   return [cardPageUrl, cardImageUrl];
 };

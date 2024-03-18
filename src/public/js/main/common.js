@@ -1,7 +1,9 @@
+export const DEFAULT_TIMEOUT_DELAY_MS = 400;
+
 export const showMainView = () => {
   const $loadingView = $('.loading-view');
   const $mainView = $('.main-view');
-  // display properties are checked and set explicitly to avoid rendering bugs
+  // the display properties are checked and set explicitly to prevent rendering issues
   if (
     $loadingView.css('display') === 'block' ||
     $mainView.css('display') === 'none'
