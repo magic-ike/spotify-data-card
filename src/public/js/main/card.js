@@ -16,12 +16,13 @@ const renderPage = () => {
   const $loadingImgContainer = $('.loading-img-container');
   const $iDataCard = $('.interactive-data-card');
   const [_, cardImageUrl] = getCardUrls();
-  $iDataCard.one('load', () =>
-    window.setTimeout(
-      () => $loadingImgContainer.hide(),
-      DEFAULT_TIMEOUT_DELAY_MS * 10
-    )
-  );
+  $iDataCard.one('load', () => {
+    $iDataCard.css('background-color', 'var(--spotify-bg)');
+    window.setTimeout(() => {
+      $loadingImgContainer.hide();
+      $iDataCard.css('background-color', '');
+    }, DEFAULT_TIMEOUT_DELAY_MS);
+  });
   showMainView();
   // this is set AFTER the main view is shown to prevent a bug where the data card never gets rendered
   $iDataCard.attr('data', cardImageUrl);

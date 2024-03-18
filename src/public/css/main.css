@@ -153,6 +153,7 @@ a:hover {
   scrollbar-width: none; /* firefox */
 }
 
+/* chrome, safari, and opera */
 .centered-row-container::-webkit-scrollbar {
   display: none;
 }
@@ -247,6 +248,7 @@ a:hover {
 }
 
 .data-card-middle-container {
+  overscroll-behavior: none;
   position: relative;
   z-index: 1;
 }
