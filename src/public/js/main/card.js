@@ -14,12 +14,15 @@ $(() => {
 
 const renderPage = () => {
   const $loadingImgContainer = $('.loading-img-container');
+  const $dataCardMiddleContainer = $('.data-card-middle-container');
   const $iDataCard = $('.interactive-data-card');
   const [_, cardImageUrl] = getCardUrls();
   $iDataCard.one('load', () => {
+    $dataCardMiddleContainer.css('overscroll-behavior', 'none');
     $iDataCard.css('background-color', 'var(--spotify-bg)');
     window.setTimeout(() => {
       $loadingImgContainer.hide();
+      $dataCardMiddleContainer.css('overscroll-behavior', '');
       $iDataCard.css('background-color', '');
     }, DEFAULT_TIMEOUT_DELAY_MS);
   });

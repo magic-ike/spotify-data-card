@@ -248,7 +248,6 @@ a:hover {
 }
 
 .data-card-middle-container {
-  overscroll-behavior: none;
   position: relative;
   z-index: 1;
 }
